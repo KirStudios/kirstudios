@@ -1,21 +1,15 @@
-MIT License
+License
 
-Copyright (c) 2026 KirStudios
+Copyright (c) 2026 Kir Studios
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This license is for the PY-DOS project.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1: You may edit the source code, but the forked (editied) version REQUIRES to be open-sourced (you give out the raw uncomplied code)
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+2: You are REQUIRED to credit Kir Studios for any forked (editied) version in your program and share this license in the credit text.
+
+3: Any scripts or programs you make using PY-DOS code is required to be open-source and required to credit Kir Studios and share this license in the credit text.
+
+4: You cannot charge money to use the program if you use any PY-DOS code. You may do donations (where the user can still FULLY use the program without paying) but if you lock down the program so that the user needs to pay to use the program or unlock features, that is NOT allowed!
+
+5: Make sure to follow this license. If enough people don't follow this license then I would have to make PY-DOS closed source (where I don't give out the uncomplied code) and take down any PY-DOS source code down.
