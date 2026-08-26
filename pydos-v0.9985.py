@@ -1,6 +1,6 @@
 try:
     print("PYDOS 0.9985")
-    version = "PYDOS 0.9985"
+    version = 0.9985
     dev = "Kir Studios"
     #PY-DOS is made by Kir Studios
     dev_txt = f"PY-DOS is made by {dev}."
@@ -137,10 +137,8 @@ try:
                     except Exception as err:
                         print(f"There was a problem while attempting to create drive. {err}")
                         continue
-                #this creates the drive <--
                 exec(f"global drives_allocate, driveallocate, drivename, drives_mapping, {drivename}; {drivename} = {{}}; drives_allocate['{drivename}'] = {driveallocate}; drives_mapping['{drivename}'] = {drivename}")
                 print("Drive created.")
-                #-->
             elif drivemgr_choice == '1':
                 print("Feature not here yet.")
             elif drivemgr_choice == '2':
@@ -175,6 +173,45 @@ try:
             ramdrive = {}
             current_drive_name = 'ramdrive'
             print("RAMdrive has been fully wiped.")
+    #NON-SYSTEM FUNCTIONS <--
+    def calc(op, num1, num2):
+        res = num1, op, num2
+        return res
+    def pydosupdate():
+        import requests
+        print("Checking for newer versions...")
+
+        # GitHub API URL for the repository's contents (defaults to the root directory)
+        repo_owner = "KirStudios"
+        repo_name = "kirstudios"
+        api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents"
+
+        print("Contacting server...")
+        response = requests.get(api_url)
+
+        if response.status_code == 200:
+            items = response.json()
+            print("Successfully got a list of hosted versions. Comparing them to this sessions version...")
+            pydos_vers = []
+            for item in items:
+                # Check whether it's a file or directory
+                item_type = item["type"]  # "file" or "dir"
+                git_filename = item['name'][7:]
+                if ".py" in git_filename:
+                    temp = git_filename.replace(".py", "")
+                    pydos_vers.append(float(temp))
+
+            print(f"All hosted versions: {pydos_vers}")
+            print(f"Current installed version: {version}")
+            if version >= max(pydos_vers):
+                print("Your PY-DOS version is up to date!")
+            else:
+                print("Your PY-DOS version is not up to date [!]")
+
+                
+        else:
+            print(f"Failed to fetch repository contents: {response.status_code}")
+    #-->
     def changeramdriveallocate(newallocate=16):
         global ramdrive_allocate
         oldallocate = ramdrive_allocate
@@ -184,12 +221,12 @@ try:
         global drives_allocate, drives_mapping
         info = ""
         for drive_name in drives_mapping:
-            drive_dict = drives_mapping[drive_name]  # Get the actual dictionary
+            drive_dict = drives_mapping[drive_name] 
             used_space = len("".join([f"{k}{v}" for k, v in drive_dict.items()]))
             allocated = drives_allocate[drive_name]
             free_space = allocated - used_space
             info = f"{info}{drive_name}:\n  Total Space: {allocated}\n  Used Space: {used_space}\n  Free Space: {free_space}\n\n"
-        print(info)  # Actually print it!
+        print(info)
         return info
     def confirm(prompt):
         global username, temp_username
@@ -299,7 +336,7 @@ try:
         if command == None:
             command = input("Type Command: ")
         if command == 'help':
-            com_hub_help = f"All Commands:\n\n-Power Modes-\n\nshutdown - turns off computer\n\n-Username Commands-\n\nusername - the terminal will say your current username\neditname - edits your username\n\n-Factory Reseting-\n\nnreset - resets this computer\n\n-PY-DOS Tools-\n\nsay [input] - the terminal will repeat what you said\ncalc - calculates math expressions\n\n-Run Python Code-\n\nexecute [input] - runs the Python code in [input]\nexecute - asks you what Python code to run\nsafeexecute [input] - runs the Python code in [input] safely\nsafeexecute - asks you what Python code to run safely\nexecutefile - lets you execute a file if it stores Python code\nsafeexecutefile - lets you execute a file if it stores Python code\n\n-Information-\n\nver - tells you your current PY-DOS version\n\n-Imports & Importing-\n\nimports - opens the Import Manager\nloadimports - loads imports on command\nlistimports - view all of the modules stored in the config file as a raw list\n\n-Auto Running Python Code-\n\nautorun - lets you create a file with Python code so when you start up PY-DOS, it auto reads the file and executes the code in that file\nexestoredpy - reads the autorun file and exeuctes the Python code you have in that file\n\n-RAmdrive Managaing-\n\ncreatefile - create a file on the RAMdrive\neditfile - edits a file on the RAMdrvive\nviewfile - view the content of a file on the RAMdrive\nviewramdrive - view the entire RAMdrive and every single item on it in raw format.\ndeletefile - deletes the file on the RAMdrive\nrenamefile - lets you rename a file on the RAMdrive.\n[input] - lets you see if a file exists by typing the filename\n\n-Recovery Options-\n\nrecenv - brings you into the recovery enviorment\n\n\nYou are using {ver}. {dev_txt}"
+            com_hub_help = f"All Commands:\n\n-Power Modes-\n\nshutdown - turns off computer\n\n-Username Commands-\n\nusername - the terminal will say your current username\neditname - edits your username\n\n-Factory Reseting-\n\nnreset - resets this computer\n\n-PY-DOS Tools-\n\nsay [input] - the terminal will repeat what you said\ncalc - calculates math expressions\n\n-Run Python Code-\n\nexecute [input] - runs the Python code in [input]\nexecute - asks you what Python code to run\nsafeexecute [input] - runs the Python code in [input] safely\nsafeexecute - asks you what Python code to run safely\nexecutefile - lets you execute a file if it stores Python code\nsafeexecutefile - lets you execute a file if it stores Python code\npyfile - lets you execute a real file if it stores Python code\n\n-Information-\n\nver - tells you your current PY-DOS version\n\n-Imports & Importing-\n\nimports - opens the Import Manager\nloadimports - loads imports on command\nlistimports - view all of the modules stored in the config file as a raw list\n\n-Auto Running Python Code-\n\nautorun - lets you create a file with Python code so when you start up PY-DOS, it auto reads the file and executes the code in that file\nexestoredpy - reads the autorun file and exeuctes the Python code you have in that file\n\n-RAMdrive Managaing-\n\ncreatefile - create a file on the RAMdrive\neditfile - edits a file on the RAMdrvive\nviewfile - view the content of a file on the RAMdrive\nviewramdrive - view the entire RAMdrive and every single item on it in raw format.\ndeletefile - deletes the file on the RAMdrive\nrenamefile - lets you rename a file on the RAMdrive.\n[input] - lets you see if a file exists by typing the filename\n\n-Recovery Options-\n\nrecenv - brings you into the recovery enviorment\n\n\nYou are using {ver}. {dev_txt}"
             print(com_hub_help)
         elif command == 'shutdown':
             user_says = confirm("Are you sure? Any unsaved work will be lost.")
@@ -577,6 +614,9 @@ try:
     def shutdown():
         print("Shutting Down...")
         raise SystemExit
+    
+    #<-- SETUP LOGIC AND STUFF -->
+
     def create_setup_file():
         global no_config_file
         try:
@@ -628,7 +668,7 @@ try:
                 setup = False
                 input("Setup complete. Press ENTER to exit.")
         except Exception as error:
-            print("setup failed.")
+            print(f"Setup failed. Error: {error}")
     else:
         setup = False
         username = "Temp_User"
