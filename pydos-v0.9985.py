@@ -1,6 +1,8 @@
 try:
     print("PYDOS 0.9985")
+    global version, exever
     version = 0.9985
+    exever = False
     dev = "Kir Studios"
     #PY-DOS is made by Kir Studios
     dev_txt = f"PY-DOS is made by {dev}."
@@ -177,40 +179,6 @@ try:
     def calc(op, num1, num2):
         res = num1, op, num2
         return res
-    def pydosupdate():
-        import requests
-        print("Checking for newer versions...")
-
-        # GitHub API URL for the repository's contents (defaults to the root directory)
-        repo_owner = "KirStudios"
-        repo_name = "kirstudios"
-        api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents"
-
-        print("Contacting server...")
-        response = requests.get(api_url)
-
-        if response.status_code == 200:
-            items = response.json()
-            print("Successfully got a list of hosted versions. Comparing them to this sessions version...")
-            pydos_vers = []
-            for item in items:
-                # Check whether it's a file or directory
-                item_type = item["type"]  # "file" or "dir"
-                git_filename = item['name'][7:]
-                if ".py" in git_filename:
-                    temp = git_filename.replace(".py", "")
-                    pydos_vers.append(float(temp))
-
-            print(f"All hosted versions: {pydos_vers}")
-            print(f"Current installed version: {version}")
-            if version >= max(pydos_vers):
-                print("Your PY-DOS version is up to date!")
-            else:
-                print("Your PY-DOS version is not up to date [!]")
-
-                
-        else:
-            print(f"Failed to fetch repository contents: {response.status_code}")
     #-->
     def changeramdriveallocate(newallocate=16):
         global ramdrive_allocate
