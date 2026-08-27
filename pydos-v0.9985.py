@@ -75,6 +75,7 @@ try:
     global no_config_file, verbal_dos, extra_protect, file_warn, ramdrive_allocate, ramdrive
     no_config_file = False
     verbal_dos = False
+    #SETTING UP ALL OF THE FRICKING RAM DRIVESSS!
     ramdrive_ready = False
     first_time = False
     extra_protect = False
@@ -84,6 +85,7 @@ try:
     pydos_application_developer_documentation = "Hello! Welcome to the PY-DOS Application Developer Documentation for versions 0.990 and higher!\n\n\nVariable Type Reminders:\n\nBOOL: TRUE or FALSE\n\nINT: A full number that contains no deciamls and only contains '0123456789'\n\nFLOAT: It can contain deciamls. For example, '123.123'\n\nSTR: Contains letters, and symbols, make sure to use INT for numbers or FLOAT for decimals or else most code will fail. But STR can contain numbers.\n\nCHAR: It stores ONLY and ONLY a single character. A character is like a single letter, number, or symbol. This currently (8/20/2026 as of typing this) does not exist in Python, every letter or symbol is stored as STR in Python. So you do not need to know CHAR unless you're reading this in the future and they added CHAR\n\\nnAPI Calls:\n\n'ramdrivemgr()' a function that allows you to rename (the command to this is 'ren'), edit (the command to this is 'edi'), delete (the command to this is 'del'), create (the command to this is 'cre'), or view (the command to this is 'vie') files in the RAMdrive. To type a command, type 'type=[the command you want to type]', 'filename=[input]', 'filecontent=[input]', 'edifilecontent=[input]', and 'renfilename=[input]'. These variables will be used when calling the function. This function can only be used when 'extra_protect' is FALSE.\n\n'confirm()' allows you to prompt the user. Just put the prompt inside the call, 'confirm(prompt=[input])'. The function will return a FALSE if the user says no, or a TRUE if the user says yes. You need to add extra logic to grab the return bool, and"
     ramdrive = {}
     current_drive = ramdrive
+    current_drive_name = 'ramdrive'
     drives_allocate = {
         'ramdrive': 16,
     }
@@ -196,13 +198,21 @@ try:
         print(f"The RAMdrive allocation has been changed from {oldallocate} to {ramdrive_allocate}. If this allocation is too big for your system, you can use a function said in the PY-DOS App Dev Doc.")
     def ramdriveinfo():
         global drives_allocate, drives_mapping
-        info = ""
+        total_files_across_drives = 0
+        for drives in drives_mapping:
+            dir = drives_mapping[drives]
+            add = len(dir.values())
+            total_files_across_drives = total_files_across_drives + add
+
+        info = f"Total Drives: {len(drives_mapping)}\nTotal Files: {total_files_across_drives}\n"
+
         for drive_name in drives_mapping:
             drive_dict = drives_mapping[drive_name] 
             used_space = len("".join([f"{k}{v}" for k, v in drive_dict.items()]))
             allocated = drives_allocate[drive_name]
             free_space = allocated - used_space
-            info = f"{info}{drive_name}:\n  Total Space: {allocated}\n  Used Space: {used_space}\n  Free Space: {free_space}\n\n"
+            total_files = len(drives_mapping[drive_name])
+            info = f"{info}{drive_name}:\n  Total Files: {total_files}\n  Total Space: {allocated}\n  Used Space: {used_space}\n  Free Space: {free_space}\n\n"
         print(info)
         return info
     def confirm(prompt):
@@ -286,6 +296,8 @@ try:
         else:
             print("Unknown command type from call. (RAMdrive Manager)")
 
+    #OPENING THE GOD DAMN FILES!
+
     def autorun_code():
         print("Automatically executing your stored Python code...")
         try:
@@ -307,13 +319,35 @@ try:
                     print(f"Loaded in '{import_item}' module...")
         except Exception as error:
             print(f"Automatic import loading has failed. You can try to load imports from the imports file by typing 'loadimports' when you get to the Command Hub. Error: {error}")
+    def readpydrive():
+        global drives_mapping, drives_allocate, ramdrive
+        print("Loading files from PyDrive...")
+        with open("pydos_pydrive.txt", "r") as file:
+            pydrive = file.read()
+            pydrive = f"global drives_mapping, drives_allocate, ramdrive\n{pydrive}"
+            exec(pydrive)
+        print("Successfully loaded files from PyDrive...")
+    def savepydrive():
+        global drives_mapping, drives_allocate, ramdrive
+        print("Saving your drives and files to PyDrive...")
+        with open("pydos_pydrive.txt", "w") as file:
+            file.write(f"drives_mapping = {drives_mapping}\n")
+            file.write(f"drives_allocate = {drives_allocate}\n")
+            for saving_drive in drives_mapping.values():
+                file.write(f"{saving_drive} = {drives_mapping[saving_drive]}")
+        print("PyDrive succcessfully created.")
+
+
+
+
     def com_hub(command=None):
         checkramdrive()
         global no_config_file, username, temp_username
+        commands = ['help', 'shutdown', 'username', 'editname', 'pyfile', 'executefile', 'safeexecutefile', 'execute', 'safeexecute', 'say', 'reset', 'ver', 'recenv', 'imports', 'loadimports', 'listimports', 'autorun', 'exestoredpy', 'drivemgr', 'createfile', 'editfile', 'delete', 'viewfile', 'deletefile', 'renamefile', 'viewramdrive', 'calc', 'exitcom']
         if command == None:
             command = input("Type Command: ")
         if command == 'help':
-            com_hub_help = f"All Commands:\n\n-Power Modes-\n\nshutdown - turns off computer\n\n-Username Commands-\n\nusername - the terminal will say your current username\neditname - edits your username\n\n-Factory Reseting-\n\nnreset - resets this computer\n\n-PY-DOS Tools-\n\nsay [input] - the terminal will repeat what you said\ncalc - calculates math expressions\n\n-Run Python Code-\n\nexecute [input] - runs the Python code in [input]\nexecute - asks you what Python code to run\nsafeexecute [input] - runs the Python code in [input] safely\nsafeexecute - asks you what Python code to run safely\nexecutefile - lets you execute a file if it stores Python code\nsafeexecutefile - lets you execute a file if it stores Python code\npyfile - lets you execute a real file if it stores Python code\n\n-Information-\n\nver - tells you your current PY-DOS version\n\n-Imports & Importing-\n\nimports - opens the Import Manager\nloadimports - loads imports on command\nlistimports - view all of the modules stored in the config file as a raw list\n\n-Auto Running Python Code-\n\nautorun - lets you create a file with Python code so when you start up PY-DOS, it auto reads the file and executes the code in that file\nexestoredpy - reads the autorun file and exeuctes the Python code you have in that file\n\n-RAMdrive Managaing-\n\ndrivemgr - lets you manage drives\ncreatefile - create a file on the RAMdrive\neditfile - edits a file on the RAMdrvive\nviewfile - view the content of a file on the RAMdrive\nviewramdrive - view the entire RAMdrive and every single item on it in raw format.\ndeletefile - deletes the file on the RAMdrive\nrenamefile - lets you rename a file on the RAMdrive.\n[input] - lets you see if a file exists by typing the filename\n\n-Recovery Options-\n\nrecenv - brings you into the recovery enviorment\n\n\nYou are using {ver}. {dev_txt}"
+            com_hub_help = f"All Commands:\n\n-Power Modes-\n\nshutdown - turns off computer\n\n-Username Commands-\n\nusername - the terminal will say your current username\neditname - edits your username\n\n-Factory Reseting-\n\nreset - resets this computer\n\n-PY-DOS Tools-\n\nsay [input] - the terminal will repeat what you said\ncalc - calculates math expressions\n\n-Run Python Code-\n\nexecute [input] - runs the Python code in [input]\nexecute - asks you what Python code to run\nsafeexecute [input] - runs the Python code in [input] safely\nsafeexecute - asks you what Python code to run safely\nexecutefile - lets you execute a file if it stores Python code\nsafeexecutefile - lets you execute a file if it stores Python code\npyfile - lets you execute a real file if it stores Python code\n\n-Information-\n\nver - tells you your current PY-DOS version\n\n-Imports & Importing-\n\nimports - opens the Import Manager\nloadimports - loads imports on command\nlistimports - view all of the modules stored in the config file as a raw list\n\n-Auto Running Python Code-\n\nautorun - lets you create a file with Python code so when you start up PY-DOS, it auto reads the file and executes the code in that file\nexestoredpy - reads the autorun file and exeuctes the Python code you have in that file\n\n-RAMdrive Managaing-\n\ndrivemgr - lets you manage drives\ncreatefile - create a file on the RAMdrive\neditfile - edits a file on the RAMdrvive\nviewfile - view the content of a file on the RAMdrive\nviewramdrive - view the entire RAMdrive and every single item on it in raw format.\ndeletefile - deletes the file on the RAMdrive\nrenamefile - lets you rename a file on the RAMdrive.\n[input] - lets you see if a file exists by typing the filename\n\n-Recovery Options-\n\nrecenv - brings you into the recovery enviorment\nexitcom - exit Command Hub\n\n\nYou are using {ver}. {dev_txt}"
             print(com_hub_help)
         elif command == 'shutdown':
             user_says = confirm("Are you sure? Any unsaved work will be lost.")
@@ -585,12 +619,15 @@ try:
             equation = f"{num1} {ope} {num2} = {res}"
             calc_history.append(equation)
             print(f"The result is {res}")
+        elif command == 'exitcom':
+            print("Exiting Command Hub...")
+            return
         elif command in current_drive and '.' in command:
             print(f"The file '{command}' does exist.")
         elif command not in current_drive and '.' in command:
             print(f"The file '{command}' does not exist.")
         else:
-            print("Unknown command, file, or drive.")
+            print(f"Unknown command, file, or drive.")
     def shutdown():
         print("Shutting Down...")
         raise SystemExit
