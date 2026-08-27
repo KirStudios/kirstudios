@@ -1,6 +1,7 @@
 Hello! Welcome to PY-DOS! A project made by me, Kir Studios by myself! It's a program based in Python.
 
 **🤨What the hell is a PY-DOS?:**
+
 PY-DOS or Python Disk Operating System is a Python script that simulates a DOS-based computer with modern features.
 
 **😐Cool, so like... what features are there?:**
@@ -15,6 +16,7 @@ And you have 'pydos_config.txt', 'pydos_autorun.txt', and 'pydos_imports.txt', c
 
 
 **😒Hell fricking no, i'm not reading that, that's longer th**-- blah blah:
+
 In short, PY-DOS is just a silly hobby project. it can't actully run on real hardware, but i would say its UX and UI is amazing. Go try it out!
 
 This is the end of the README.md!
