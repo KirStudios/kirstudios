@@ -179,16 +179,21 @@ try:
             print("RAMdrive has been fully wiped.")
     #NON-SYSTEM FUNCTIONS <--
     def calc(op=None, n1=None, n2=None):
-        if op == None or n1 == None or n2 == None:
-            print("The expression could not be completed. One or more variables given is not the expected type.")
+        try:
+            n1 = float(n1)
+            n2 = float(n2)
+            op = str(op)
+        except Exception as err:
+            print(f"The expression could not be completed. One or more variables given is not the expected type. {err}")
+            return
         if op == '/':
             res = n1 / n2
         elif op == '+':
             res = n1 + n2
         elif op == '-':
-            res = n1 + n2
+            res = n1 - n2
         elif op == '*':
-            res = n1 + n2
+            res = n1 * n2
         return res
     #-->
     def changeramdriveallocate(newallocate=16):
