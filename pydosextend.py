@@ -2,28 +2,32 @@ try:
     dev = "Kir Studios"
     mainapp = "PY-DOS"
     #BOTH PY-DOS AND PY-DOS EXTEND ARE MADE BY KIR STUDIOS
-    if __name__ != "__main__":
+    if __name__ == "__main__":
         input("Hi! Welcome to PY-DOS Extend! So glad you have installed this PY-DOS Application, but this PY-DOS Application requires you to run it in PY-DOS. Press ENTER to exit.")
         raise SystemExit
     global modules_made, pydos_extend_logs
     modules_made = False
     pydos_extend_logs = []
-    def do(com):
-         if com == 'unknowncom':
-            from thefuzz import process
+    #WHAT PY-DOS CALLS TO DO
+    def do(com=None, s1=None, s2=None, s3=None, s4=None, s5=None):
+        try:
+            global pydocommand, commands
+            #USER TYPES UNKNOWN COMMAND
+            if com == 'unknowncom':
+                from thefuzz import process
 
-            # Extract the single best match
-            result = process.extractOne(command, commands)
+                result = process.extractOne(s1, s2)
 
-            # Check if a match was found and if its score is 85 or higher
-            if result and result[1] >= 85:
-                best_match = result[0]
-            else:
-                best_match = None
+                if result and result[1] >= 85:
+                    best_match = result[0]
+                else:
+                    best_match = None
 
-            print(best_match)
-
-         pass
+                output = f"Perhaps you meant to type '{best_match}'?"
+                return output
+        except Exception as e:
+            create_log(f"An error has happened while PY-DOS tried to call do(). {e}")
+             
     def create_log(log):
         global pydos_extend_logs
         try:
@@ -31,7 +35,6 @@ try:
             from datetime import datetime
             now = datetime.now()
 
-            # %f gives 6 digits of microseconds; slice to keep the first 4 digits
             formatted_now = now.strftime("[%Y/%m/%d_%H:%M:%S:") + now.strftime("%f")[:4] + "]"
             pydos_extend_logs.append(f"{formatted_now}{log}")
         except:
@@ -67,16 +70,16 @@ try:
         tries = 0
         while True:
             print(f"ATTEMPTS TO DOWNLOAD MODULES: {tries}")
-            modules_to_get = ["thefuzz", "certifi", "urllib3", "requests", "cffi", "numpy"]
+            modules_to_get = ["thefuzz", "certifi", "urllib3", "requests", "cffi", "beautifulsoup4"]
             for module in modules_to_get:
-                subprocess.run(["pip", "install", f"{module}"])
+                subprocess.run(["pip3", "install", f"{module}"])
             try:
                 import thefuzz
                 import certifi
                 import urllib3
                 import requests
                 import cffi
-                import numpy
+                from bs4 import BeautifulSoup
                 break
             except Exception as err:
                 print(f"An error has happened. Attemtping to redownload modules again. {err}")
