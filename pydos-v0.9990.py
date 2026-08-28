@@ -1,6 +1,6 @@
 try:
     print("PYDOS 0.9990")
-    global pydos_extend
+    global pydos_extend, pydosextend
     pydos_extend = False
     try:
         import pydosextend
@@ -150,7 +150,7 @@ try:
                         int(driveallocate)
                         break
                     except Exception as err:
-                        print(f"There was a problem while attempting to create drive. {err}")
+                        makelog(f"There was a problem while attempting to create drive. {err}", 1)
                         continue
                 exec(f"global drives_allocate, driveallocate, drivename, drives_mapping, {drivename}; {drivename} = {{}}; drives_allocate['{drivename}'] = {driveallocate}; drives_mapping['{drivename}'] = {drivename}")
                 print("Drive created.")
@@ -211,7 +211,17 @@ try:
     def makelog(log=None, type=0):
         if log == None:
             return
-        pydos_logs.append(log)
+        try:
+            raise Exception
+        except Exception as e:
+            tb = e.__traceback__
+                    
+            if tb and tb.tb_frame and tb.tb_frame.f_back:
+                caller_frame = tb.tb_frame.f_back
+                caller_name = caller_frame.f_code.co_name
+            else:
+                caller_name = '-UNKNOWN-'
+        pydos_logs.append(f"[{caller_name}]{log}")
         if type == 1:
             print(log)
     #-->
@@ -352,30 +362,40 @@ try:
         except Exception as error:
             makelog(f"Automatic import loading has failed. You can try to load imports from the imports file by typing 'loadimports' when you get to the Command Hub. Error: {error}", 1)
     def readpydrive():
-        global drives_mapping, drives_allocate, ramdrive
-        print("Loading files from PyDrive...")
-        with open("pydos_pydrive.txt", "r") as file:
-            pydrive = file.read()
-            pydrive = f"global drives_mapping, drives_allocate, ramdrive\n{pydrive}"
-            exec(pydrive)
-        print("Successfully loaded files from PyDrive...")
+        try:
+            global drives_mapping, drives_allocate, ramdrive
+            print("Loading files from PyDrive...")
+            with open("pydos_pydrive.txt", "r") as file:
+                pydrive = file.read()
+                pydrive = f"global drives_mapping, drives_allocate, ramdrive\n{pydrive}"
+                exec(pydrive)
+            print("Successfully loaded files from PyDrive...")
+        except FileNotFoundError as err:
+            makelog(f"There was an issue while trying to edit or create the PyDrive. {err}", 0)
+        except Exception as err:
+            makelog(f"There was an issue while trying to edit or create the PyDrive. {err}", 1)
     def savepydrive():
-        global drives_mapping, drives_allocate, ramdrive
-        print("Saving your drives and files to PyDrive...")
-        with open("pydos_pydrive.txt", "w") as file:
-            file.write(f"drives_mapping = {drives_mapping}\n")
-            file.write(f"drives_allocate = {drives_allocate}\n")
-            for saving_drive in drives_mapping.keys():
-                file.write(f"{saving_drive} = {drives_mapping[saving_drive]}\n")
-        print("PyDrive succcessfully created.")
+        try:
+            global drives_mapping, drives_allocate, ramdrive
+            print("Saving your drives and files to PyDrive...")
+            with open("pydos_pydrive.txt", "w") as file:
+                file.write(f"drives_mapping = {drives_mapping}\n")
+                file.write(f"drives_allocate = {drives_allocate}\n")
+                for saving_drive in drives_mapping.keys():
+                    file.write(f"{saving_drive} = {drives_mapping[saving_drive]}\n")
+            print("PyDrive succcessfully created.")
+        except FileNotFoundError as err:
+            makelog(f"There was an issue while trying to edit or create the PyDrive. {err}", 0)
+        except Exception as err:
+            makelog(f"There was an issue while trying to edit or create the PyDrive. {err}", 1)
     def com_hub(command=None):
         checkramdrive()
         global no_config_file, username, temp_username
-        commands = ['help', 'shutdown', 'username', 'editname', 'pyfile', 'executefile', 'safeexecutefile', 'execute', 'safeexecute', 'say', 'reset', 'ver', 'recenv', 'imports', 'loadimports', 'listimports', 'autorun', 'exestoredpy', 'drivemgr', 'createfile', 'editfile', 'delete', 'viewfile', 'deletefile', 'renamefile', 'viewramdrive', 'calc', 'exitcom']
+        commands = ['help', 'shutdown', 'username', 'editname', 'pyfile', 'executefile', 'safeexecutefile', 'execute', 'safeexecute', 'say', 'reset', 'ver', 'recenv', 'imports', 'loadimports', 'listimports', 'autorun', 'exestoredpy', 'drivemgr', 'createfile', 'editfile', 'delete', 'viewfile', 'deletefile', 'renamefile', 'viewramdrive', 'syncpydrive', 'currentdrive', 'calc', 'exitcom']
         if command == None:
             command = input("Type Command: ")
         if command == 'help':
-            com_hub_help = f"All Commands:\n\n-Power Modes-\n\nshutdown - turns off computer\n\n-Username Commands-\n\nusername - the terminal will say your current username\neditname - edits your username\n\n-Factory Reseting-\n\nreset - resets this computer\n\n-PY-DOS Tools-\n\nsay [input] - the terminal will repeat what you said\ncalc - calculates math expressions\n\n-Run Python Code-\n\nexecute [input] - runs the Python code in [input]\nexecute - asks you what Python code to run\nsafeexecute [input] - runs the Python code in [input] safely\nsafeexecute - asks you what Python code to run safely\nexecutefile - lets you execute a file if it stores Python code\nsafeexecutefile - lets you execute a file if it stores Python code\npyfile - lets you execute a real file if it stores Python code\n\n-Information-\n\nver - tells you your current PY-DOS version\n\n-Imports & Importing-\n\nimports - opens the Import Manager\nloadimports - loads imports on command\nlistimports - view all of the modules stored in the config file as a raw list\n\n-Auto Running Python Code-\n\nautorun - lets you create a file with Python code so when you start up PY-DOS, it auto reads the file and executes the code in that file\nexestoredpy - reads the autorun file and exeuctes the Python code you have in that file\n\n-RAMdrive Managing-\n\ndrivemgr - lets you manage drives\ncreatefile - create a file on the RAMdrive\neditfile - edits a file on the RAMdrvive\nviewfile - view the content of a file on the RAMdrive\nviewramdrive - view the entire RAMdrive and every single item on it in raw format.\ndeletefile - deletes the file on the RAMdrive\nrenamefile - lets you rename a file on the RAMdrive.\n[input] - lets you see if a file exists by typing the filename\n\n-Recovery Options-\n\nrecenv - brings you into the recovery enviorment\nexitcom - exit Command Hub\n\n\nYou are using {ver}. {dev_txt}"
+            com_hub_help = f"All Commands:\n\n-Power Modes-\n\nshutdown - turns off computer\n\n-Username Commands-\n\nusername - the terminal will say your current username\neditname - edits your username\n\n-Factory Reseting-\n\nreset - resets this computer\n\n-PY-DOS Tools-\n\nsay [input] - the terminal will repeat what you said\ncalc - calculates math expressions\n\n-Run Python Code-\n\nexecute [input] - runs the Python code in [input]\nexecute - asks you what Python code to run\nsafeexecute [input] - runs the Python code in [input] safely\nsafeexecute - asks you what Python code to run safely\nexecutefile - lets you execute a file if it stores Python code\nsafeexecutefile - lets you execute a file if it stores Python code\npyfile - lets you execute a real file if it stores Python code\n\n-Information-\n\nver - tells you your current PY-DOS version\n\n-Imports & Importing-\n\nimports - opens the Import Manager\nloadimports - loads imports on command\nlistimports - view all of the modules stored in the config file as a raw list\n\n-Auto Running Python Code-\n\nautorun - lets you create a file with Python code so when you start up PY-DOS, it auto reads the file and executes the code in that file\nexestoredpy - reads the autorun file and exeuctes the Python code you have in that file\n\n-RAMdrive Managing-\n\ndrivemgr - lets you manage drives\ncreatefile - create a file on the RAMdrive\neditfile - edits a file on the RAMdrvive\nviewfile - view the content of a file on the RAMdrive\nviewramdrive - view the entire RAMdrive and every single item on it in raw format.\ndeletefile - deletes the file on the RAMdrive\nrenamefile - lets you rename a file on the RAMdrive.\n[input] - lets you see if a file exists by typing the filename\nsyncpydrive - saves all of your drives and files to the PyDrive\ncurrentdrive - tells you the current drive\n\n-Recovery Options-\n\nrecenv - brings you into the recovery enviorment\nexitcom - exit Command Hub\n\n\nYou are using {ver}. {dev_txt}"
             print(com_hub_help)
         elif command == 'shutdown':
             user_says = confirm("Are you sure? Any unsaved work will be lost.")
@@ -585,6 +605,10 @@ try:
             print("File renamed.")
         elif command == 'viewramdrive':
             print(ramdrive)
+        elif command == 'syncpydrive':
+            savepydrive()
+        elif command == 'currentdrive':
+            print(f"The drive you are using to create, edit, delete, and view files is '{current_drive_name}'.")
         elif command == 'calc':
             show_err = False
             view_calc_history = confirm("Do you want to view your calculation histroy? Type 'n' to calculate instead")
@@ -606,7 +630,7 @@ try:
                         show_err = True
                         pass
                     if show_err:
-                        print(f"Please type a number. If you did, an error has happened. {err}")
+                        makelog(f"Please type a number. If you did, an error has happened. {err}", 1)
                     if not show_err:
                         break
             while True:
@@ -621,7 +645,7 @@ try:
                         show_err = True
                         pass
                     if show_err:
-                        print(f"Please type a number. If you did, an error has happened. {err}")
+                        makelog(f"Please type a number. If you did, an error has happened. {err}", 1)
                     if not show_err:
                         break
             while True:
@@ -663,10 +687,17 @@ try:
                     if "'None'" not in output:
                         print(output)
             except Exception as err:
-                print(err)
+                makelog(f"A problem has happened with PY-DOS Extend. {err}", 0)
     def shutdown():
         print("Shutting Down...")
         raise SystemExit
+
+    def confirm_shutdown():
+        user_says = confirm("Are you sure you want to shutdown? Any unsaved work will be lost.")
+        if user_says == True:
+            shutdown()
+        elif user_says == False:
+            print("Shutdown aborted.")
     
     #<-- SETUP LOGIC AND STUFF -->
 
@@ -696,7 +727,6 @@ try:
         try:
             with open("pydos_config.txt", "r") as file:
                 content = file.read()
-                print(content)
                 if "do_setup = True" in content: 
                     setup = True
                 elif "do_setup = False" in content: 
@@ -705,12 +735,8 @@ try:
                         code_to_run = content.replace("do_setup = False", "")
                         code_to_run = content.replace("do_setup = True", "")
                         exec(code_to_run)
-                        try:
-                            print(username)
-                        except:
-                            pass
         except Exception as error:
-            print(f"Could not read setup file. {error}")
+            makelog(f"Could not read setup file. {error}", 1)
             setup = False
             create_setup_file()
         try:
@@ -723,7 +749,7 @@ try:
                 setup = False
                 input("Setup complete. Press ENTER to exit.")
         except Exception as error:
-            print(f"Setup failed. Error: {error}")
+            makelog(f"Setup failed. Error: {error}", 1)
     else:
         setup = False
         username = "Temp_User"
@@ -732,25 +758,32 @@ try:
         username = "Temp_User"
     autorun_code()
     load_imports_auto()
+    readpydrive()
     input(f"Hello {username}, welcome to PY-DOS! Press ENTER to continue")
     print("Type 'help' for help.")
     while True:
-        checkramdrive()
-        com_hub()
-        if no_config_file == False:
-            try:
-                if setup == True and no_config_file == False:
-                    input("Welcome to PY-DOS! Better known as the Python Disk Operating System. Press ENTER to continue.")
-                    username = input("Type in a name that you want the system to call you: ")
-                    with open("pydos_config.txt", "w") as file:
-                        file.write("do_setup = False")
-                        file.write(f"""\nusername = '{username}'""")
-                    setup = False
-                    input("Setup complete. Press ENTER to exit.")
-                else:
-                    pass
-            except Exception as error:
-                print("setup failed.")
+        try:
+            checkramdrive()
+            com_hub()
+            if no_config_file == False:
+                try:
+                    if setup == True and no_config_file == False:
+                        input("Welcome to PY-DOS! Better known as the Python Disk Operating System. Press ENTER to continue.")
+                        username = input("Type in a name that you want the system to call you: ")
+                        with open("pydos_config.txt", "w") as file:
+                            file.write("do_setup = False")
+                            file.write(f"""\nusername = '{username}'""")
+                        setup = False
+                        input("Setup complete. Press ENTER to exit.")
+                    else:
+                        pass
+                except Exception as error:
+                    makelog(f"Setup failed. {error}", 1)
+        except KeyboardInterrupt:
+            confirm_shutdown()
+            continue
+except KeyboardInterrupt:
+    shutdown()
 except Exception as e:
     try:
         crash = input(f"PYDOS has crashed. When you press ENTER, the system will now shut down. To enter recovery enviorment, type 'recenv' then press ENTER. Error Code: {e}")
