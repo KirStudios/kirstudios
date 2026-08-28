@@ -8,9 +8,12 @@ try:
     except BaseException:
         pydos_extend = False
 
-    global version, exever
+    global pydos_logs
+
+    pydos_logs = []
+
+    global version
     version = 0.9990
-    exever = False
     dev = "Kir Studios"
     #PY-DOS is made by Kir Studios
     dev_txt = f"PY-DOS is made by {dev}."
@@ -109,7 +112,7 @@ try:
             with open("pydos_config.txt", "w") as file:
                 print("Writing setup file...")
                 file.write("do_setup = True")
-                file.write("\nusername = None")
+                file.write("\nusername = '[]'")
                 print("Setup file successfully created.")
                 setup = True
         except Exception as error:
@@ -185,6 +188,7 @@ try:
             ramdrive = {}
             current_drive_name = 'ramdrive'
             print("RAMdrive has been fully wiped.")
+
     #NON-SYSTEM FUNCTIONS <--
     def calc(op=None, n1=None, n2=None):
         try:
@@ -203,6 +207,13 @@ try:
         elif op == '*':
             res = n1 * n2
         return res
+
+    def makelog(log=None, type=0):
+        if log == None:
+            return
+        pydos_logs.append(log)
+        if type == 1:
+            print(log)
     #-->
     def changeramdriveallocate(newallocate=16):
         global ramdrive_allocate
@@ -317,11 +328,16 @@ try:
             with open("pydos_autorun.txt", "r") as file:
                 content = file.read()
                 exec(content)
+        except FileNotFoundError as error:
+            makelog(f"Automatic autorun executing has failed. You can try to execute your stored Python code from the autorun file by typing 'exestoredpy' when you get to the Command Hub. Error: {error}", 0)
+            return
         except Exception as error:
-            print(f"Automatic autorun executing has failed. You can try to execute your stored Python code from the autorun file by typing 'exestoredpy' when you get to the Command Hub. Error: {error}")
+            makelog(f"Automatic autorun executing has failed. You can try to execute your stored Python code from the autorun file by typing 'exestoredpy' when you get to the Command Hub. Error: {error}", 1)
         
     def load_imports_auto():
         print("Automatically loading your stored imports...")
+        global imports
+        imports = []
         try:
             with open("pydos_imports.txt", "r") as file:
                 code = file.read()
@@ -330,8 +346,11 @@ try:
                 for import_item in imports:
                     globals() [import_item] = __import__(import_item)
                     print(f"Loaded in '{import_item}' module...")
+        except FileNotFoundError as error:
+            makelog(f"Automatic import loading has failed. You can try to load imports from the imports file by typing 'loadimports' when you get to the Command Hub. Error: {error}", 0)
+            return
         except Exception as error:
-            print(f"Automatic import loading has failed. You can try to load imports from the imports file by typing 'loadimports' when you get to the Command Hub. Error: {error}")
+            makelog(f"Automatic import loading has failed. You can try to load imports from the imports file by typing 'loadimports' when you get to the Command Hub. Error: {error}", 1)
     def readpydrive():
         global drives_mapping, drives_allocate, ramdrive
         print("Loading files from PyDrive...")
@@ -637,10 +656,14 @@ try:
             print(f"The file '{command}' does not exist.")
         else:
             print(f"Unknown command, file, or drive.")
-            if pydos_extend:
-                import pydosextend
-                output = pydosextend.do("unknowncom", command, commands)
-                print(output)
+            try:
+                if pydos_extend:
+                    import pydosextend
+                    output = pydosextend.do("unknowncom", command, commands)
+                    if "'None'" not in output:
+                        print(output)
+            except Exception as err:
+                print(err)
     def shutdown():
         print("Shutting Down...")
         raise SystemExit
@@ -648,13 +671,14 @@ try:
     #<-- SETUP LOGIC AND STUFF -->
 
     def create_setup_file():
-        global no_config_file
+        global no_config_file, setup
         try:
             with open("pydos_config.txt", "w") as file:
                 print("Writing setup file...")
                 file.write("do_setup = True")
                 file.write("\nusername = None")
                 print("Setup file successfully created.")
+                setup = True
         except Exception as error:
             input(f"There was a problem with creating setup file. {error}")
             user_says = confirm("Do you want to run PY-DOS into No Configuration File mode?")
@@ -687,6 +711,7 @@ try:
                             pass
         except Exception as error:
             print(f"Could not read setup file. {error}")
+            setup = False
             create_setup_file()
         try:
             if setup == True:
