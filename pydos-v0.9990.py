@@ -7,9 +7,7 @@ try:
         pydos_extend = True
     except BaseException:
         pydos_extend = False
-
     global pydos_logs
-
     pydos_logs = []
 
     global version
@@ -122,38 +120,132 @@ try:
         file_warn = True
         extra_protect = True
     def drivemgr():
-        global ramdrive, ramdrive_allocate, current_drive, drives_mapping, drives_allocate
+        global ramdrive, ramdrive_allocate, current_drive, drives_mapping, drives_allocate, output, addstr, itworks, blocked_keywords, blocked_characters, remcha
         while True:
+            blocked_keywords = ['False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield']
+            blocked_characters = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '"', "'", '<', '>', ',', '.', '?', '/', '~', '`']
+            addstr = False
+            output = False
+            remcha = False
+            itworks = None
             print(f"List of drives: {drives_mapping}")
             drivemgr_choice = input("Enter 0 to create a drive, enter 1 to delete a drive and move its contents, enter 2 to delete a drive and its contents, 3 to change the current drive, and enter 4 to exit Drive Manager: ")
             if drivemgr_choice == '0':
+                prompt_user_for_name = True
+                output = None
                 while True:
                     breakloop = False
-                    drivename = input("Enter the name of this new drive: ")
+                    remcha = None
+                    if prompt_user_for_name:
+                        drivename = input("Enter the name of this new drive: ")
+                        og_drivename = drivename
+                    else:
+                        print(drivename)
+                    prompt_user_for_name = True
+                    
                     if len(drivename) >= 17:
                         print("Drive name cannot be bigger than 16.")
                         continue
+
+                    if drivename in blocked_keywords:
+                        makelog("Drive name cannot only contain a Python reserved word.", 1)
+                        addstr = confirm("Would you like to add a word at the start so it's no longer a Python reserved word?")
+                        if addstr == False:
+                            prompt_user_for_name = True
+                            continue
+
+                    for char in blocked_characters:
+                        if char in drivename:
+                            makelog("Drive name cannot contain a Python reserved character.", 1)
+                            remcha = confirm("Would you like to remove the reserved character so it no longer has a Python reserved character?")
+                            if remcha == False:
+                                break
+                    if addstr == True:
+                        pass
+
+                    if remcha == False:
+                        continue
+
+                    if remcha == True:
+                        for char in blocked_characters:
+                            drivename = drivename.replace(char, "")
+                        print(f"Your drive name has been changed from '{og_drivename}' to '{drivename}' in order to comply with drive naming rules.")
+                        prompt_user_for_name = False
+                                            
+                    if " " in drivename: 
+                        print("Drive name cannot contain spaces.")
+                        output = confirm("Would you like to replace the spaces with underscores? From ' ' to '_'?")
+                        if output == True:
+                            drivename = drivename.replace(" ", "_")
+                            prompt_user_for_name = False
+                            output = None  # Reset output
+                        else:
+                            continue
+
                     try:
                         float(drivename)
-                        print("Drive name must contain at least 1 letter.")
-                        continue
+                        makelog("Drive names must contain at least 1 letter.", 1)
+                        addstr = confirm("Would you like to add a word at the start so it has a letter?")
+                        if addstr == False:
+                            makelog("Drive names must contain at least 1 letter.", 2)
+                            continue
                     except:
-                        breakloop = True
+                        pass
+
+                    if addstr == False:
+
+                        ints = '0', '1', '2', '3', '4', '5', '6', '7', '8','9'
+                        starts_with_num = False
+                        for integer_digit in ints:
+                            if drivename.startswith(integer_digit):
+                                starts_with_num = True
+                                break
+                        if starts_with_num:
+                            makelog("Drive name cannot start with a number.", 1)
+                            addstr = confirm("Would you like to add a word at the start so it starts with a letter?")
+                            if addstr == False:
+                                makelog("Drive name must contain at least 1 letter.", 2)
+                                continue
+
+                    if addstr == True:
+                        #tries to add a word to the drive name
+                        words = ['drive', 'dri', 'd']
+                        itworks = False
+                        for word in words:
+                            prompt_user_for_name = False
+                            og_drivename = drivename
+                            drivename = f"{word}{drivename}"
+                            if len(drivename) <= 16:
+                                print(f"Your drive name has been changed from '{og_drivename}' to '{drivename}' in order to comply with drive naming rules.")
+                                itworks = True
+                                break
+                            elif len(drivename) >= 17:
+                                drivename = og_drivename
+                                itworks = False
+                    if itworks == False:
+                        print("Unable to apply word at front because there isn't enough character space to do so.")
+                        continue
+
+                    breakloop = True
+
                     if breakloop:
                         break
+
                 while True:
-                    driveallocate = input("Allocate this drive (default is 16 if you don't enter anything): ")
-                    print("Creating drive...")
                     try:
-                        if driveallocate == '' or None:
+                        driveallocate = input("Allocate this drive (default is 16 if you don't enter anything): ")
+                        print("Creating drive...")
+                        if driveallocate == '':
                             driveallocate = 16
                         int(driveallocate)
+                        exec(f"global drives_allocate, driveallocate, drivename, drives_mapping, {drivename}; {drivename} = {{}}; drives_allocate['{drivename}'] = {driveallocate}; drives_mapping['{drivename}'] = {drivename}")
+                        print("Drive created.")
+                        break
+                    except KeyboardInterrupt:
                         break
                     except Exception as err:
                         makelog(f"There was a problem while attempting to create drive. {err}", 1)
                         continue
-                exec(f"global drives_allocate, driveallocate, drivename, drives_mapping, {drivename}; {drivename} = {{}}; drives_allocate['{drivename}'] = {driveallocate}; drives_mapping['{drivename}'] = {drivename}")
-                print("Drive created.")
             elif drivemgr_choice == '1':
                 print("Feature not here yet.")
             elif drivemgr_choice == '2':
@@ -210,6 +302,9 @@ try:
 
     def makelog(log=None, type=0):
         if log == None:
+            return
+        if type == 2:
+            print(log)
             return
         try:
             raise Exception
