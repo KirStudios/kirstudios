@@ -203,6 +203,40 @@ try:
             exe = file.read()
             exe = f"global modules_made\n{exe}"
             exec(exe)
+    def install_modules():
+        try:
+            import subprocess
+            print("Installing modules PY-DOS Extend requires...")
+            global tries
+            tries = 0
+            while True:
+                print(f"ATTEMPTS TO DOWNLOAD MODULES: {tries}")
+                modules_to_get = ["thefuzz", "certifi", "urllib3", "requests", "cffi", "beautifulsoup4", "pyttsx3"]
+                for module in modules_to_get:
+                    subprocess.run(
+                        ["pip3", "install", module],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                    )
+
+                try:
+                    import thefuzz
+                    import certifi
+                    import urllib3
+                    import requests
+                    import cffi
+                    from bs4 import BeautifulSoup
+                    import pyttsx3
+                    break
+                except Exception as err:
+                    print(f"An error has happened. Attemtping to redownload modules again. {err}")
+                    tries = tries + 1
+                    if tries >= 3:
+                        print("Too many failed attempts has happened. PY-DOS Extend will now exit.")
+                        raise SystemExit
+            tell_extend_file_true()
+        except:
+            return
 
     try:
         read_extend_file()
@@ -214,32 +248,10 @@ try:
             create_log(f"An error has happened while trying to write config file. {e}")
             print(f"Unable to create PY-DOS Extend Configuration File. {e}")
     if modules_made == False:
-        import subprocess
-        print("Installing modules PY-DOS Extend requires...")
-        global tries
-        tries = 0
-        while True:
-            print(f"ATTEMPTS TO DOWNLOAD MODULES: {tries}")
-            modules_to_get = ["thefuzz", "certifi", "urllib3", "requests", "cffi", "beautifulsoup4", "pyttsx3"]
-            for module in modules_to_get:
-                subprocess.run(["pip3", "install", f"{module}"])
-            try:
-                import thefuzz
-                import certifi
-                import urllib3
-                import requests
-                import cffi
-                from bs4 import BeautifulSoup
-                import pyttsx3
-                break
-            except Exception as err:
-                print(f"An error has happened. Attemtping to redownload modules again. {err}")
-                tries = tries + 1
-                if tries >= 3:
-                    print("Too many failed attempts has happened. PY-DOS Extend will now exit.")
-                    raise SystemExit
-        tell_extend_file_true()
-        
+        import threading
+        import time
+        thread = threading.Thread(target=install_modules)
+        thread.start()
 
 except Exception as err:
     print(f"A problem with PY-DOS Extend happened. Error: {err}")
