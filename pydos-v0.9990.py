@@ -91,7 +91,7 @@ try:
     calc_history = []
     file_warn = False
     ver = "PY-DOS 0.9990"
-    pydos_application_developer_documentation = "Hello! Welcome to the PY-DOS Application Developer Documentation for versions 0.990 and higher!\n\n\nVariable Type Reminders:\n\nBOOL: TRUE or FALSE\n\nINT: A full number that contains no deciamls and only contains '0123456789'\n\nFLOAT: It can contain deciamls. For example, '123.123'\n\nSTR: Contains letters, and symbols, make sure to use INT for numbers or FLOAT for decimals or else most code will fail. But STR can contain numbers.\n\nCHAR: It stores ONLY and ONLY a single character. A character is like a single letter, number, or symbol. This currently (8/20/2026 as of typing this) does not exist in Python, every letter or symbol is stored as STR in Python. So you do not need to know CHAR unless you're reading this in the future and they added CHAR\n\\nnAPI Calls:\n\n'ramdrivemgr()' a function that allows you to rename (the command to this is 'ren'), edit (the command to this is 'edi'), delete (the command to this is 'del'), create (the command to this is 'cre'), or view (the command to this is 'vie') files in the RAMdrive. To type a command, type 'type=[the command you want to type]', 'filename=[input]', 'filecontent=[input]', 'edifilecontent=[input]', and 'renfilename=[input]'. These variables will be used when calling the function. This function can only be used when 'extra_protect' is FALSE.\n\n'confirm()' allows you to prompt the user. Just put the prompt inside the call, 'confirm(prompt=[input])'. The function will return a FALSE if the user says no, or a TRUE if the user says yes. You need to add extra logic to grab the return bool, and"
+    pydos_application_developer_documentation = "Hello! Welcome to the PY-DOS Application Developer Documentation for versions 0.990 and higher!\n\n\nVariable Type Reminders:\n\nBOOL: TRUE or FALSE\n\nINT: A full number that contains no deciamls and only contains '0123456789'\n\nFLOAT: It can contain deciamls. For example, '123.123'\n\nSTR: Contains letters, and symbols, make sure to use INT for numbers or FLOAT for decimals or else most code will fail. But STR can contain numbers.\n\nCHAR: It stores ONLY and ONLY a single character. A character is like a single letter, number, or symbol. This currently (8/20/2026 as of typing this) does not exist in Python, every letter or symbol is stored as STR in Python. So you do not need to know CHAR unless you're reading this in the future and they added CHAR\n\\nnAPI Calls:\n\n'ramdrivemgr()' a function that allows you to rename (the command to this is 'ren'), edit (the command to this is 'edi'), delete (the command to this is 'del'), create (the command to this is 'cre'), or view (the command to this is 'vie') files in the RAMdrive. To type a command, type 'type=[the command you want to type]', 'filename=[input]', 'filecontent=[input]', 'edifilecontent=[input]', and 'renfilename=[input]'. These variables will be used when calling the function. This function can only be used when 'extra_protect' is FALSE.\n\n'confirm()' allows you to prompt the user. Just put the prompt inside the call, 'confirm(prompt=[input])'. The function will return a FALSE if the user says no, or a TRUE if the user says yes. You need to add extra logic to grab the return bool, and then decide what your program does based on the bool type."
     ramdrive = {}
     current_drive = ramdrive
     current_drive_name = 'ramdrive'
@@ -319,6 +319,69 @@ try:
         pydos_logs.append(f"[{caller_name}]{log}")
         if type == 1:
             print(log)
+    global app_variable_table, makevar, viewvar, delvar, appreturn, runtime_errors
+    runtime_errors = 0
+    app_variable_table = {}
+    def makevar(varname=None, varcontent=None, ow=0):
+        '''Creates a variable with a name and value'''
+        global runtime_errors
+        if varname == None:
+            runtime_errors = runtime_errors + 1
+            return 'error - no variable name listed'
+        if varcontent == None:
+            runtime_errors = runtime_errors + 1
+            return 'error - no variable content listed'
+        if ow == None:
+            runtime_errors = runtime_errors + 1
+            return 'error - no protection type listed'
+        if ow == 0:
+            for variable in app_variable_table:
+                if varname == variable:
+                    runtime_errors = runtime_errors + 1
+                    return 'fault - a variable with this name already exists'
+            app_variable_table[varname] = varcontent
+        elif ow == 1:
+            app_variable_table[varname] = varcontent
+        return 'success - the task has been completed'
+    def viewvar(varname=None):
+        '''Let's you view a variable value that you have created'''
+        global runtime_errors
+        if varname == None:
+            runtime_errors = runtime_errors + 1
+            return 'error - no variable name listed'
+        if varname not in app_variable_table:
+            runtime_errors = runtime_errors + 1
+            return 'fault - the variable does not exist so you cannot view it'
+        for variable in app_variable_table:
+            if variable == varname:
+                variablecontent = app_variable_table[varname]
+                return variablecontent
+    def delvar(varname=None):
+        '''Let's you delete a variable that you have created'''
+        global runtime_errors
+        if varname == None:
+            runtime_errors = runtime_errors + 1
+            return 'error - no variable name listed'
+        for variable in app_variable_table:
+            if variable == varname:
+                del app_variable_table[variable]
+                return 'success - the task has been completed'
+    def appreturn(returninfo=1):
+        '''This closes your PY-DOS application/program while letting PY-DOS know that your program ran with no errors'''
+        global runtime_errors
+        if returninfo == None:
+            returninfo = 1
+        elif returninfo == 1:
+            r1 = runtime_errors
+        elif returninfo == 2:
+            r1 = runtime_errors
+            r2 = app_variable_table
+        app_variable_table = {}
+        runtime_errors = 0
+        if returninfo == 1:
+            return r1
+        elif returninfo == 2:
+            return r1, r2
     #-->
     def changeramdriveallocate(newallocate=16):
         global ramdrive_allocate
@@ -519,6 +582,7 @@ try:
             elif user_says == False:
                 print("Username change aborted.")
         elif command == 'clear':
+            print("Clearing your screen...")
             for _ in range(10000):
                 print()
         elif command == 'pyfile':
