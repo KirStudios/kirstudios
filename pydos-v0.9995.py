@@ -321,6 +321,40 @@ try:
         pydos_logs.append(f"[{caller_name}]{log}")
         if type == 1:
             print(log)
+    def importing(module=None):
+        if module == None:
+            return
+        elif isinstance(module, str):
+            try:
+                globals() [module] = __import__(module)
+                print(f"Loaded in '{module}' module...")
+            except Exception as err:
+                print(err)
+        elif isinstance(module, list):
+            try:
+                for import_item in module:
+                    globals() [import_item] = __import__(import_item)
+                    print(f"Loaded in '{import_item}' module...")
+            except Exception as err:
+                print(err)
+        else:
+            print("The variable given is not supported.")
+
+    def intmenu(options):
+        if isinstance(options, list):
+            opt_txt = f""
+            opt_cnt = 0
+            for option in options:
+                opt_cnt = opt_cnt + 1
+                opt_txt = opt_txt + f"{opt_cnt}: {option}\n"
+            opt_txt = opt_txt[:-1]
+            choice = input(f"Choose a option by typing the number beside the action you want to choose.\n{opt_txt}\nType your choice here: ")
+            #type your logic once returned
+            return choice
+        else:
+            print("intmenu requires a list.")
+            return
+    
     global app_variable_table, makevar, viewvar, delvar, appreturn, runtime_errors
     runtime_errors = 0
     app_variable_table = {}
@@ -538,6 +572,17 @@ try:
             print(current_drive[filename])
         else:
             print("Unknown command type from call. (RAMdrive Manager)")
+
+    def extendhub():
+        global pydos_extend, pydosextend
+        print("Welcome to PY-DOS Extension Hub!")
+        user_choice = intmenu(['Test PY-DOS Extend', 'Visit PY-DOS Extend Command Line', 'Disable PY-DOS Extend', 'Enable PY-DOS Extend'])
+        if user_choice == '3':
+            globals().pop("pydosextend", None)
+            pydos_extend = False
+        else:
+            print("This option isn't valid or the feature isn't here yet.")
+
 
     #OPENING THE GOD DAMN FILES!
 
