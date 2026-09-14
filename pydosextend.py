@@ -206,7 +206,7 @@ try:
     def install_modules():
         try:
             import subprocess
-            print("Installing modules PY-DOS Extend requires...")
+            print("Installing modules PY-DOS Extend requires (press CTRL+C to cancel)...")
             global tries
             tries = 0
             while True:
@@ -228,6 +228,9 @@ try:
                     from bs4 import BeautifulSoup
                     import pyttsx3
                     break
+                except KeyboardInterrupt:
+                    print("Module downloading has been forcefully stopped.")
+                    return
                 except Exception as err:
                     print(f"An error has happened. Attemtping to redownload modules again. {err}")
                     tries = tries + 1
@@ -248,10 +251,7 @@ try:
             create_log(f"An error has happened while trying to write config file. {e}")
             print(f"Unable to create PY-DOS Extend Configuration File. {e}")
     if modules_made == False:
-        import threading
-        import time
-        thread = threading.Thread(target=install_modules)
-        thread.start()
+        install_modules()
 
 except Exception as err:
     print(f"A problem with PY-DOS Extend happened. Error: {err}")
