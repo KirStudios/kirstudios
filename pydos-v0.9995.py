@@ -12,12 +12,13 @@ try:
 
     global version
     version = 0.9995
+    global ver
+    ver = "PY-DOS 0.9995"
     dev = "Kir Studios"
     #PY-DOS is made by Kir Studios
     dev_txt = f"PY-DOS is made by {dev}."
     print(dev)
     print(dev_txt)
-    global ver
     if __name__ != "__main__":
         yeswarn = True
         external_program_path = ""
@@ -92,7 +93,6 @@ try:
     extra_protect = False
     calc_history = []
     file_warn = False
-    ver = "PY-DOS 0.9995"
     pydos_application_developer_documentation = "Hello! Welcome to the PY-DOS Application Developer Documentation for versions 0.9995 and higher!\n\n\nVariable Type Reminders:\n\nBOOL: TRUE or FALSE\n\nINT: A full number that contains no deciamls and only contains '0123456789'\n\nFLOAT: It can contain deciamls. For example, '123.123'\n\nSTR: Contains letters, and symbols, make sure to use INT for numbers or FLOAT for decimals or else most code will fail. But STR can contain numbers.\n\nCHAR: It stores ONLY and ONLY a single character. A character is like a single letter, number, or symbol. This currently (8/20/2026 as of typing this) does not exist in Python, every letter or symbol is stored as STR in Python. So you do not need to know CHAR unless you're reading this in the future and they added CHAR\n\\nnAPI Calls:\n\n'ramdrivemgr()' a function that allows you to rename (the command to this is 'ren'), edit (the command to this is 'edi'), delete (the command to this is 'del'), create (the command to this is 'cre'), or view (the command to this is 'vie') files in the RAMdrive. To type a command, type 'type=[the command you want to type]', 'filename=[input]', 'filecontent=[input]', 'edifilecontent=[input]', and 'renfilename=[input]'. These variables will be used when calling the function. This function can only be used when 'extra_protect' is FALSE.\n\n'confirm()' allows you to prompt the user. Just put the prompt inside the call, 'confirm(prompt=[input])'. The function will return a FALSE if the user says no, or a TRUE if the user says yes. You need to add extra logic to grab the return bool, and then decide what your program does based on the bool type.\n\n'makevar()' creates a variable with a name and contets.\n\n'delvar()' deletes a variable.\n\n'editvar()' lets you edit a variable contents\n\n'renvar()' lets you edit a variable name.\n\n'viewvar()' lets you view a contents of an already existing variable.\n\n'appreturn()' makes everything ready to close your app."
     ramdrive = {}
     current_drive = ramdrive
@@ -259,7 +259,7 @@ try:
                     current_drive_name = desired_drive
                     print(f"Switched to {desired_drive}")
                 else:
-                    print(f"The drive '{desired_drive}' could not be found")
+                    print(f"The drive '{desired_drive}' could not be found.")
             elif drivemgr_choice == '4':
                 print("Exiting Drive Manager...")
                 break
@@ -468,6 +468,17 @@ try:
         elif returninfo == 2:
             return r1, r2
     #-->
+    def confirm(prompt):
+        global username, temp_username
+        while True:
+            response = input(f"{prompt} (y/n): ")
+            if response in ["yess", "yes", "y", "ye"]:
+                return True
+            elif response in ["noo", "no", "n"]:
+                return False
+            else:
+                print("That's not a valid respone.")
+    #IMPORTANT RAMDRIVE FUNCTIONS -->
     def changeramdriveallocate(newallocate=16):
         global ramdrive_allocate
         oldallocate = ramdrive_allocate
@@ -492,16 +503,8 @@ try:
             info = f"{info}{drive_name}:\n  Total Files: {total_files}\n  Total Space: {allocated}\n  Used Space: {used_space}\n  Free Space: {free_space}\n\n"
         print(info)
         return info
-    def confirm(prompt):
-        global username, temp_username
-        while True:
-            response = input(f"{prompt} (y/n): ")
-            if response in ["yess", "yes", "y", "ye"]:
-                return True
-            elif response in ["noo", "no", "n"]:
-                return False
-            else:
-                print("That's not a valid respone.")
+    def updatedrive():
+        drives_mapping[current_drive_name] = current_drive
     def ramdrivemgr(type=None, filename=None, renfilename=None, filecontent=None, edifilecontent=None, origin='.UNKNOWN.'):
         checkramdrive()
         global extra_protect, file_warn
@@ -549,17 +552,29 @@ try:
                     print("File deletion aborted.")
         elif type == 'cre':
             current_drive[filename] = filecontent
+            space_used = len(filename) + len(filecontent)
+            if len("".join([f"{k}{v}" for k, v in current_drive.items()])) + space_used > ramdrive_allocate:
+                print(f"There isn't enough space in this drive to manage this file.\nTotal Space: {ramdrive_allocate}\nUsed Space: {len("".join([f"{k}{v}" for k, v in current_drive.items()]))}\nFree Space: {ramdrive_allocate - len("".join([f"{k}{v}" for k, v in current_drive.items()]))}\nFree Space Needed To Manage File: {space_used}")
+                return
             print("File created.")
         elif type == 'edi':
             if filename not in ramdrive:
-                print(f"Unable to edit, '{filename}' because it does not exist on the RAMdrive.")
+                print(f"Unable to edit, '{filename}' because it does not exist on this drive.")
+                return
+            space_used = len(filename) + len(edifilecontent)
+            if len("".join([f"{k}{v}" for k, v in current_drive.items()])) + space_used > ramdrive_allocate:
+                print(f"There isn't enough space in this drive to manage this file.\nTotal Space: {ramdrive_allocate}\nUsed Space: {len("".join([f"{k}{v}" for k, v in current_drive.items()]))}\nFree Space: {ramdrive_allocate - len("".join([f"{k}{v}" for k, v in current_drive.items()]))}\nFree Space Needed To Manage File: {space_used}")
                 return
             del current_drive[filename]
             current_drive[filename] = edifilecontent
             print("File edited.")
         elif type == 'ren':
             if filename not in ramdrive:
-                print(f"Unable to rename, '{filename}' because it does not exist on the RAMdrive.")
+                print(f"Unable to rename, '{filename}' because it does not exist on this drive.")
+                return
+            space_used = len(renfilename) + len(temp_filecontent)
+            if len("".join([f"{k}{v}" for k, v in current_drive.items()])) + space_used > ramdrive_allocate:
+                print(f"There isn't enough space in this drive to manage this file.\nTotal Space: {ramdrive_allocate}\nUsed Space: {len("".join([f"{k}{v}" for k, v in current_drive.items()]))}\nFree Space: {ramdrive_allocate - len("".join([f"{k}{v}" for k, v in current_drive.items()]))}\nFree Space Needed To Manage File: {space_used}")
                 return
             temp_filecontent = current_drive[filename]
             del current_drive[filename]
@@ -582,6 +597,7 @@ try:
             pydos_extend = False
         else:
             print("This option isn't valid or the feature isn't here yet.")
+    #-->
 
 
     #OPENING THE GOD DAMN FILES!
@@ -811,27 +827,15 @@ try:
         elif command == 'drivemgr':
             drivemgr()
         elif command == 'createfile':
-            com_filename = input("Type in filename (include file format too): ")
-            com_filecontent = input("Type in the file content: ")
-            space_used = len(com_filename) + len(com_filecontent)
-            if len("".join([f"{k}{v}" for k, v in current_drive.items()])) + space_used > ramdrive_allocate:
-                print(f"There isn't enough space in the RAMdrive to manage this file.\nTotal Space: {ramdrive_allocate}\nUsed Space: {len("".join([f"{k}{v}" for k, v in current_drive.items()]))}\nFree Space: {ramdrive_allocate - len("".join([f"{k}{v}" for k, v in current_drive.items()]))}\nFree Space Needed To Manage File: {space_used}")
-                return
-            current_drive[com_filename] = com_filecontent
-            print("File created.")
-            print(f"Drive: {current_drive_name}\nTotal Space: {ramdrive_allocate}\nUsed Space: {len("".join([f"{k}{v}" for k, v in current_drive.items()]))}\nFree Space: {ramdrive_allocate - len("".join([f"{k}{v}" for k, v in current_drive.items()]))}")
+            filename = input("Type in filename (include file format too): ")
+            filecontent = input("Type in the file content: ")
+            ramdrivemgr(type='cre', filename=filename, filecontent=filecontent, origin='com_hub')
         elif command == 'editfile':
             com_edit_filename = input("Type in filename (include file format too): ")
             com_filecontent = input("Type in the new file content: ")
-            space_used = len(com_edit_filename) + len(com_filecontent)
-            if len("".join([f"{k}{v}" for k, v in current_drive.items()])) + space_used > ramdrive_allocate:
-                print(f"There isn't enough space in the RAMdrive to manage this file.\nTotal Space: {ramdrive_allocate}\nUsed Space: {len("".join([f"{k}{v}" for k, v in current_drive.items()]))}\nFree Space: {ramdrive_allocate - len("".join([f"{k}{v}" for k, v in current_drive.items()]))}\nFree Space Needed To Manage File: {space_used}")
-                return
             user_says = confirm(f"Are you sure you want to edit the file, '{com_edit_filename}'? The content will change from '{current_drive[com_edit_filename]}' to '{com_filecontent}'")
             if user_says == True:
-                del current_drive[com_edit_filename]
-                current_drive[com_edit_filename] = com_filecontent
-                print("File edited.")
+                ramdrivemgr(type='edi', edifilecontent=com_edit_filename, filename=com_edit_filename, origin='com_hub')
             elif user_says == False:
                 print("File editing aborted.")
         elif command == 'viewfile':
@@ -849,21 +853,13 @@ try:
             com_del_filename = input("Type in the filename (include the file format): ")
             user_says = confirm(f"Are you sure you want to delete the file, '{com_del_filename}'?")
             if user_says == True:
-                del current_drive[com_del_filename]
-                print("File deleted.")
+                ramdrivemgr(type='del', filename=com_del_filename, origin='com_hub')
             elif user_says == False:
                 print("File deletion aborted.")
         elif command == 'renamefile':
             com_to_edit_filename = input("Type in the filename you want to rename (include the file format): ")
             com_edit_filename = input("Type in the new filename (include the file format): ")
-            space_used = len(com_to_edit_filename) + len(com_edit_filename)
-            if len("".join([f"{k}{v}" for k, v in current_drive.items()])) + space_used > ramdrive_allocate:
-                print(f"There isn't enough space in the RAMdrive to manage this file.\nTotal Space: {ramdrive_allocate}\nUsed Space: {len("".join([f"{k}{v}" for k, v in current_drive.items()]))}\nFree Space: {ramdrive_allocate - len("".join([f"{k}{v}" for k, v in current_drive.items()]))}\nFree Space Needed To Manage File: {space_used}")
-                return
-            temp_com_edit_filecontent = current_drive[com_to_edit_filename]
-            del current_drive[com_to_edit_filename]
-            current_drive[com_edit_filename] = temp_com_edit_filecontent
-            print("File renamed.")
+            ramdrivemgr(type='ren', filename=com_to_edit_filename, renfilename=com_edit_filename, origin='com_hub')
         elif command == 'viewramdrive':
             print(ramdrive)
         elif command == 'syncpydrive':
