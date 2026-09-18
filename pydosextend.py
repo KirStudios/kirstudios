@@ -209,15 +209,34 @@ try:
             print("Installing modules PY-DOS Extend requires (press CTRL+C to cancel)...")
             global tries
             tries = 0
+            beta_test = False
+            if beta_test == True:
+                try:
+                    import requests
+                    import time
+                    urls = ["https://google.com", "https://microsoft.com", "https://apple.com", "https://amazon.com", "https://bing.com"]
+                    for url in urls:
+                        start_time = time.perf_counter()
+                        response = requests.head(url, timeout=5, allow_redirects=True)
+                        end_time = time.perf_counter()
+                        elapsed = end_time - start_time
+                except:
+                    pass
+                print(f"This won't take long. Set back and relax. Estimated time {elapsed}")
+            elif beta_test == False:
+                print("This won't take long. Set back and relax. Estimated time: 10-45 seconds")
             while True:
                 print(f"ATTEMPTS TO DOWNLOAD MODULES: {tries}")
                 modules_to_get = ["thefuzz", "certifi", "urllib3", "requests", "cffi", "beautifulsoup4", "pyttsx3"]
+                modules = 0
                 for module in modules_to_get:
+                    modules = modules + 1
                     subprocess.run(
                         ["pip3", "install", module],
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL
                     )
+                    print(f"Attempting to install '{module}' ({modules}/{len(modules_to_get)})...")
 
                 try:
                     import thefuzz
