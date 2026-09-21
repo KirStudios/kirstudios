@@ -131,8 +131,8 @@ try:
             remcha = False
             itworks = None
             print(f"List of drives: {drives_mapping}")
-            drivemgr_choice = input("Enter 0 to create a drive, enter 1 to delete a drive and move its contents, enter 2 to delete a drive and its contents, 3 to change the current drive, and enter 4 to exit Drive Manager: ")
-            if drivemgr_choice == '0':
+            drivemgr_choice = intmenu(['Create a drive', 'Delete A Drive And Move Its Contents', 'Delete A Drive And Its Contents', 'Change The Current Drive', 'Exit Drive Manager'])
+            if drivemgr_choice == '1':
                 prompt_user_for_name = True
                 output = None
                 while True:
@@ -248,11 +248,11 @@ try:
                     except Exception as err:
                         makelog(f"There was a problem while attempting to create drive. {err}", 1)
                         continue
-            elif drivemgr_choice == '1':
-                print("Feature not here yet.")
             elif drivemgr_choice == '2':
                 print("Feature not here yet.")
             elif drivemgr_choice == '3':
+                print("Feature not here yet.")
+            elif drivemgr_choice == '4':
                 desired_drive = input("Enter the drive name you want to switch to: ")
                 if desired_drive in drives_mapping:
                     current_drive = drives_mapping[desired_drive]
@@ -260,7 +260,7 @@ try:
                     print(f"Switched to {desired_drive}")
                 else:
                     print(f"The drive '{desired_drive}' could not be found.")
-            elif drivemgr_choice == '4':
+            elif drivemgr_choice == '5':
                 print("Exiting Drive Manager...")
                 break
     def checkramdrive():
