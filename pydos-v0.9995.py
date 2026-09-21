@@ -1,6 +1,7 @@
 try:
     print("PYDOS 0.9995")
-    global pydos_extend, pydosextend
+    global pydos_extend, best_match, pydosextend
+    best_match = "help"
     pydos_extend = False
     try:
         import pydosextend
@@ -87,7 +88,7 @@ try:
     verbal_dos = False
     class ExitApp(Exception):
         pass
-    #SETTING UP ALL OF THE FRICKING RAM DRIVESSS!
+    #SETTING UP ALL OF THE COMPLEX MULTI-DRIVE FUNCTIONS THAT TAKE MY MENTAL MOOD IN A ROLLAR COASTER! .·´¯`(>▂<)´¯`·. 
     ramdrive_ready = False
     first_time = False
     extra_protect = False
@@ -131,7 +132,7 @@ try:
             remcha = False
             itworks = None
             print(f"List of drives: {drives_mapping}")
-            drivemgr_choice = intmenu(['Create a drive', 'Delete A Drive And Move Its Contents', 'Delete A Drive And Its Contents', 'Change The Current Drive', 'Exit Drive Manager'])
+            drivemgr_choice = intmenu(['Create a drive', 'Delete A Drive And Move Its Contents', 'Delete A Drive And Its Contents', 'Change The Current Drive', 'Exit Drive Manager'], 0)
             if drivemgr_choice == '1':
                 prompt_user_for_name = True
                 output = None
@@ -180,7 +181,7 @@ try:
                         if output == True:
                             drivename = drivename.replace(" ", "_")
                             prompt_user_for_name = False
-                            output = None  # Reset output
+                            output = None
                         else:
                             continue
 
@@ -248,10 +249,25 @@ try:
                     except Exception as err:
                         makelog(f"There was a problem while attempting to create drive. {err}", 1)
                         continue
+            #the rest of drivemgr
             elif drivemgr_choice == '2':
                 print("Feature not here yet.")
             elif drivemgr_choice == '3':
-                print("Feature not here yet.")
+                choice = listdrives("What drive do you want to delete alongside its contents?")
+                victimdrive = getvalfromvar(drives_mapping, int(choice), 1)
+                if victimdrive == 'ramdrive':
+                    print("You cannot delete the RAMdrive.")
+                    continue
+                user_says = confirm(f"ARE YOU SURE YOU WANT TO DELETE THE DRIVE '{victimdrive}' AND IT'S {len(drives_mapping[victimdrive])} {'FILE' if len(drives_mapping[victimdrive]) == 1 else 'FILES'}? THIS ACTION CANNOT BE UNDONE! IT'S A GOOD HABIT TO CREATE A PYDRIVE BACKUP BEFORE DOING BIG ACTIONS LIKE THIS.")
+                if user_says == True:
+                    try:
+                        del drives_mapping[victimdrive]
+                    except Exception as e:
+                        print(f"Failed to delete drive. {e}")
+                        continue
+                    print("DRIVE DELETED")
+                else:
+                    continue
             elif drivemgr_choice == '4':
                 desired_drive = input("Enter the drive name you want to switch to: ")
                 if desired_drive in drives_mapping:
@@ -340,20 +356,54 @@ try:
         else:
             print("The variable given is not supported.")
 
-    def intmenu(options):
-        if isinstance(options, list):
+    def intmenu(options=None, type=None):
+        #makes sure the given data is a list or dict
+        if isinstance(options, list) or isinstance(options, dict):
             opt_txt = f""
             opt_cnt = 0
+            #generates the UI
             for option in options:
                 opt_cnt = opt_cnt + 1
                 opt_txt = opt_txt + f"{opt_cnt}: {option}\n"
             opt_txt = opt_txt[:-1]
-            choice = input(f"Choose a option by typing the number beside the action you want to choose.\n{opt_txt}\nType your choice here: ")
-            #type your logic once returned
-            return choice
+            #prints the auto gen UI to the user
+            if type == 0 or None:
+                choice = input(f"Choose a option by typing the number beside the action you want to choose.\n{opt_txt}\nType your choice here: ")
+                #type your logic once returned
+                return choice
+            elif type == 1:
+                return opt_txt
         else:
-            print("intmenu requires a list.")
+            print("intmenu requires a list or dict.")
             return
+
+    def getvalfromvar(var=None, ind=None, cnt=None):
+        if var == None or ind == None:
+            return 'broken parameters'
+        else:
+            try:
+                int(ind)
+            except:
+                print("getvalfromvar requires ind to be a interger!")
+                return
+            if cnt == 0 or cnt == None:
+                count = 0
+            elif cnt == 1:
+                count = 1
+            for value in var:
+                if ind == count:
+                    return value
+                else:
+                    print(f"DIDN'T MATCH! {ind} AND {count} DOES NOT MATCH!")
+                    count = count + 1
+            print("couldn't reach wanted value.")
+            return
+
+
+    def listdrives(prompt=None):
+        #yes, this entire function is only in two LOC
+        dchoice = input(f"{f'{prompt}\n' if prompt != None else ''}Select a drive by typing the number beside the drive.\n{intmenu(drives_mapping, 1)}\nType number here: ")
+        return dchoice
     
     global app_variable_table, makevar, viewvar, delvar, appreturn, runtime_errors
     runtime_errors = 0
@@ -598,9 +648,7 @@ try:
         else:
             print("This option isn't valid or the feature isn't here yet.")
     #-->
-
-
-    #OPENING THE GOD DAMN FILES!
+    #OPENING THE ANNYOING FILES! D:<
 
     def autorun_code():
         print("Automatically executing your stored Python code...")
@@ -636,9 +684,11 @@ try:
             global drives_mapping, drives_allocate, ramdrive
             print("Loading files from PyDrive...")
             with open("pydos_pydrive.txt", "r") as file:
+                global pydrive
                 pydrive = file.read()
-                pydrive = f"global drives_mapping, drives_allocate, ramdrive\n{pydrive}"
-                exec(pydrive)
+                global exepydrive
+                exepydrive = f"global drives_mapping, drives_allocate, ramdrive\n{pydrive}"
+                exec(exepydrive)
             print("Successfully loaded files from PyDrive...")
         except FileNotFoundError as err:
             makelog(f"There was an issue while trying to edit or create the PyDrive. {err}", 0)
@@ -660,12 +710,14 @@ try:
             makelog(f"There was an issue while trying to edit or create the PyDrive. {err}", 1)
     def com_hub(command=None):
         checkramdrive()
-        global no_config_file, username, temp_username
-        commands = ['help', 'shutdown', 'username', 'editname', 'pyfile', 'executefile', 'safeexecutefile', 'execute', 'safeexecute', 'say', 'reset', 'ver', 'recenv', 'imports', 'loadimports', 'listimports', 'autorun', 'exestoredpy', 'drivemgr', 'createfile', 'editfile', 'delete', 'viewfile', 'deletefile', 'renamefile', 'viewramdrive', 'syncpydrive', 'currentdrive', 'calc', 'clear', 'exitcom']
+        global no_config_file, username, temp_username, best_match
+        commands = ['help', 'shutdown', 'username', 'editname', 'pyfile', 'executefile', 'safeexecutefile', 'execute', 'safeexecute', 'say', 'reset', 'ver', 'recenv', 'imports', 'loadimports', 'listimports', 'autorun', 'exestoredpy', 'drivemgr', 'createfile', 'editfile', 'delete', 'viewfile', 'deletefile', 'renamefile', 'viewramdrive', 'syncpydrive', 'currentdrive', 'backuppydrive', 'readpydrivebackup', 'calc', 'clear', 'exitcom']
         if command == None:
             command = input("Type Command: ")
-        if command == 'help':
-            com_hub_help = f"All Commands:\n\n-Power Modes-\n\nshutdown - turns off computer\n\n-Username Commands-\n\nusername - the terminal will say your current username\neditname - edits your username\n\n-Factory Reseting-\n\nreset - resets this computer\n\n-PY-DOS Tools-\n\nsay [input] - the terminal will repeat what you said\ncalc - calculates math expressions\nclear - clears your screen\n\n-Run Python Code-\n\nexecute [input] - runs the Python code in [input]\nexecute - asks you what Python code to run\nsafeexecute [input] - runs the Python code in [input] safely\nsafeexecute - asks you what Python code to run safely\nexecutefile - lets you execute a file if it stores Python code\nsafeexecutefile - lets you execute a file if it stores Python code\npyfile - lets you execute a real file if it stores Python code\n\n-Information-\n\nver - tells you your current PY-DOS version\n\n-Imports & Importing-\n\nimports - opens the Import Manager\nloadimports - loads imports on command\nlistimports - view all of the modules stored in the config file as a raw list\n\n-Auto Running Python Code-\n\nautorun - lets you create a file with Python code so when you start up PY-DOS, it auto reads the file and executes the code in that file\nexestoredpy - reads the autorun file and exeuctes the Python code you have in that file\n\n-RAMdrive Managing-\n\ndrivemgr - lets you manage drives\ncreatefile - create a file on the RAMdrive\neditfile - edits a file on the RAMdrvive\nviewfile - view the content of a file on the RAMdrive\nviewramdrive - view the entire RAMdrive and every single item on it in raw format.\ndeletefile - deletes the file on the RAMdrive\nrenamefile - lets you rename a file on the RAMdrive.\n[input] - lets you see if a file exists by typing the filename\nsyncpydrive - saves all of your drives and files to the PyDrive\ncurrentdrive - tells you the current drive\n\n-Recovery Options-\n\nrecenv - brings you into the recovery enviorment\nexitcom - exit Command Hub\n\n\nYou are using {ver}. {dev_txt}"
+        if command == 'y':
+            com_hub(best_match)
+        elif command == 'help':
+            com_hub_help = f"All Commands:\n\n-Power Modes-\n\nshutdown - turns off computer\n\n-Username Commands-\n\nusername - the terminal will say your current username\neditname - edits your username\n\n-Factory Reseting-\n\nreset - resets this computer\n\n-PY-DOS Tools-\n\nsay [input] - the terminal will repeat what you said\ncalc - calculates math expressions\nclear - clears your screen\ny - enters the command PY-DOS thought you are trying to say\n\n-Run Python Code-\n\nexecute [input] - runs the Python code in [input]\nexecute - asks you what Python code to run\nsafeexecute [input] - runs the Python code in [input] safely\nsafeexecute - asks you what Python code to run safely\nexecutefile - lets you execute a file if it stores Python code\nsafeexecutefile - lets you execute a file if it stores Python code\npyfile - lets you execute a real file if it stores Python code\n\n-Information-\n\nver - tells you your current PY-DOS version\n\n-Imports & Importing-\n\nimports - opens the Import Manager\nloadimports - loads imports on command\nlistimports - view all of the modules stored in the config file as a raw list\n\n-Auto Running Python Code-\n\nautorun - lets you create a file with Python code so when you start up PY-DOS, it auto reads the file and executes the code in that file\nexestoredpy - reads the autorun file and exeuctes the Python code you have in that file\n\n-RAMdrive Managing-\n\ndrivemgr - lets you manage drives\ncreatefile - create a file on the RAMdrive\neditfile - edits a file on the RAMdrvive\nviewfile - view the content of a file on the RAMdrive\nviewramdrive - view the entire RAMdrive and every single item on it in raw format.\ndeletefile - deletes the file on the RAMdrive\nrenamefile - lets you rename a file on the RAMdrive.\n[input] - lets you see if a file exists by typing the filename\nsyncpydrive - saves all of your drives and files to the PyDrive\ncurrentdrive - tells you the current drive\nbackuppydrive - clones current PyDrive into another file\nreadpydrivebackup - recover drives and files from backup\n\n-Recovery Options-\n\nrecenv - brings you into the recovery enviorment\nexitcom - exit Command Hub\n\n\nYou are using {ver}. {dev_txt}"
             print(com_hub_help)
         elif command == 'shutdown':
             user_says = confirm("Are you sure? Any unsaved work will be lost.")
@@ -866,6 +918,38 @@ try:
             savepydrive()
         elif command == 'currentdrive':
             print(f"The drive you are using to create, edit, delete, and view files is '{current_drive_name}'.")
+        elif command == 'backuppydrive':
+            #add this to help, 'A PyDrive Backup is where it clones your current PyDrive into another file. So if you want to revert to a preivous state of PyDrive you can load up the backup.'
+            user_says = confirm("Are you sure you want to create a PyDrive Backup?")
+            if user_says == True:
+                try:
+                    with open("pydos_pydrive_backup.txt", "r") as file:
+                        file.read()
+                    user_says = confirm("A PyDrive Backup already exists. If you continue, the PyDrive Backup will be overwritten to the new PyDrive Backup. Continue?")
+                    if user_says == False:
+                        return
+                except Exception as e:
+                    pass
+                with open("pydos_pydrive_backup.txt", "w") as file:
+                    file.write("#backup\n" + exepydrive)
+                    print("The PyDrive Backup has been created.")
+        elif command == 'readpydrivebackup':
+            try:
+                with open("pydos_pydrive_backup.txt", "r") as file:
+                    user_says = confirm("This will overwrite the current RAMdrive with the drives and files from PyDrive Backup unless the current RAMdrive is in PyDrive. Continue?")
+                    if user_says == True:
+                        if "#backup" not in file.read():
+                            user_says = confirm("The PyDrive Backup has been messed with. Files and drives may be corrupt or/and not the contents it used to be. Attempt to recover data?")
+                        if user_says == True:
+                            exec(file.read())
+                        elif user_says == False:
+                            return
+                        print("PyDrive Backup successfully loaded into RAMdrive.")
+                    elif user_says == False:
+                        return
+            except Exception as e:
+                print(f"An error occured while trying to read PyDrive Backup. {e}")
+
         elif command == 'calc':
             show_err = False
             view_calc_history = confirm("Do you want to view your calculation histroy? Type 'n' to calculate instead")
@@ -938,11 +1022,12 @@ try:
         else:
             print(f"Unknown command, file, or drive.")
             try:
-                if pydos_extend:
-                    import pydosextend
-                    output = pydosextend.do("unknowncom", command, commands)
-                    if "'None'" not in output:
-                        print(output)
+                if command.replace(" ", "") != "":
+                    if pydos_extend:
+                        import pydosextend
+                        output, best_match = pydosextend.do("unknowncom", command, commands)
+                        if "'None'" not in output:
+                            print(output)
             except Exception as err:
                 makelog(f"A problem has happened with PY-DOS Extend. {err}", 0)
     def shutdown():
