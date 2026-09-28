@@ -149,7 +149,7 @@ try:
             stay = True
             while stay:
                 print(pathsofapps)
-                choice = intmenu(['Edit A Entry', 'Delete A Entry', 'Create A Entry', 'Exit Path App Manager'], 0)
+                choice = intmenu(['Edit A Entry', 'Delete A Entry', 'Create A Entry', 'Let Path App Manager create entries automatically', 'Exit Path App Manager'], 0)
                 
                 if choice == '1':
                     print("Which one?")
@@ -164,8 +164,7 @@ try:
                     
                     appname = input("Enter new app name: ")
                     apppath = input("Enter new app path: ")
-                    
-                    # Remove old key and add new entry
+                
                     del pathsofapps[old_appname]
                     pathsofapps[appname] = apppath
                     print("Path App Changed!")
@@ -184,6 +183,17 @@ try:
                     pathsofapps[appname] = apppath
 
                 elif choice == '4':
+                    if pydos_extend:
+                        from pathlib import Path
+                        main_directory = Path(__file__).parent
+                        for file_path in main_directory.rglob("*.py"):
+                            print(f"Python File: {file_path.name}")
+                            print(f"Full Path:   {file_path}\n")
+                            pathsofapps[file_path.name[:-3]] = str(file_path)
+                    else:
+                        print("This feature requires PY-DOS Extend.")
+                        continue
+                elif choice == '5':
                     print("Exiting Path App Manager...")
                     stay = False
 
@@ -845,7 +855,6 @@ try:
                     print()
             elif command == 'pyfile':
                 file = input("What file in your computer should PY-DOS execute?: ")
-                found_correct_app = False
                 while True:
                     try:
                         if "/ignore\\" in file[-8:]:
@@ -858,8 +867,11 @@ try:
                                 exec(exe)
                             except BaseException as e:
                                 print(e)
-                        break
+                            return
                     except FileNotFoundError as error:
+                        if file not in pathsofapps.keys():
+                            print("All paths in the Path of Apps keys don't match with the inputted key.")
+                            return
                         for path in pathsofapps:
                             if file == path:
                                 file = pathsofapps[path]
@@ -867,16 +879,13 @@ try:
                                     print(f"This file contains the ignore flag. Made by typing '/ignore\\' on the path. PY-DOS will now not access that path since it has the ignore flag.\nFull Path: {file}")
                                     return
                                 try:
-                                    with open(file, "r") as file:
-                                        file.read()
+                                    with open(file, "r") as file3:
+                                        file3.read()
                                 except Exception as e:
                                     print(f"The path listed in the Path of Apps either dosen't exist or PY-DOS isn't allowed to read it. {e}")
                                     return
-                                found_correct_app = True
                                 continue
-                        print("All paths in the Path of Apps keys don't match with the inputted key.")
-                        return
-                                
+                                    
             elif command == 'executefile':
                 exe_filename = input("Type in the filename of the file you want to execute: ")
                 try:
