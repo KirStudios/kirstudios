@@ -187,8 +187,6 @@ try:
                         from pathlib import Path
                         main_directory = Path(__file__).parent
                         for file_path in main_directory.rglob("*.py"):
-                            print(f"Python File: {file_path.name}")
-                            print(f"Full Path:   {file_path}\n")
                             pathsofapps[file_path.name[:-3]] = str(file_path)
                     else:
                         print("This feature requires PY-DOS Extend.")
