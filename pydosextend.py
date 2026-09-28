@@ -16,16 +16,18 @@ try:
             #USER TYPES UNKNOWN COMMAND
             if com == 'unknowncom':
                 from thefuzz import process
+                #Default is 80, Strict is 90. and Loosey is 70. The last two modes will be added in later builds of Extend.
+                fuzz_per = 80
 
                 result = process.extractOne(s1, s2)
 
-                if result and result[1] >= 80:
+                if result and result[1] >= fuzz_per:
                     best_match = result[0]
                 else:
                     best_match = None
 
                 output = f"Perhaps you meant to type '{best_match}'?"
-                return output
+                return output, best_match
 
             #CONTACTS GITHUB SERVERS TO FIND A NEW PY-DOS VERSION
             elif com == 'update':
@@ -61,9 +63,9 @@ try:
                             if version > max(pydos_vers):
                                 print("Your PY-DOS version is a build not uploaded or deleted from GitHub! Take good care of it! Your PY-DOS version is up to date!")
                                 return
-                            print("Your PY-DOS version is up to date!")
+                            print("Your PY-DOS version is up to date! :D")
                         else:
-                            print("Your PY-DOS version is not up to date [!]")
+                            print("[!] Your PY-DOS version is not up to date [!]")
                     else:
                         print("No valid version files found on server.")
                 else:
@@ -150,6 +152,91 @@ try:
                         print(f"Could not download file. Error: {e}")
                 else:
                     print("This file already exists! To prevent overwriting, the update installation has been aborted.")
+            #UPDATEMGR
+            elif com == 'updatepydos':
+                print("Checking for newer versions...")
+                import requests
+                import subprocess
+                import sys
+                repo_owner = "KirStudios"
+                repo_name = "kirstudios"
+                api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents"
+
+                print("Contacting server...")
+                response = requests.get(api_url)
+
+                if response.status_code == 200:
+                    items = response.json()
+                    print("Successfully got a list of hosted versions. Comparing them to this session's version...")
+                    
+                    pydos_vers = []
+                    for item in items:
+                        filename = item['name']
+                        if filename.startswith("pydos-v") and filename.endswith(".py"):
+                            ver_str = filename.replace("pydos-v", "").replace(".py", "")
+                            try:
+                                pydos_vers.append(float(ver_str))
+                            except ValueError:
+                                pass
+                    
+                    version = float(s1)
+                    print(f"All hosted versions: {pydos_vers}")
+                    print(f"Current installed version: {version}")
+                    if version >= max(pydos_vers):
+                        if version > max(pydos_vers):
+                            print("Your PY-DOS version is a build not uploaded or deleted from GitHub! Take good care of it! Your PY-DOS version is up to date!")
+                            return
+                        print("Your PY-DOS version is up to date! :D")
+                    else:
+                        print("[!] Your PY-DOS version is not up to date [!]")
+                else:
+                    print(f"Failed to fetch repository contents: {response.status_code}")
+                    
+                import urllib.request
+                latest_item = None
+                if pydos_vers:
+                    highest_version = max(pydos_vers)
+                    ver_suffix = f"{highest_version:.4f}.py" 
+                    
+                    for item in items:
+                        if item['name'].endswith(ver_suffix):
+                            latest_item = item
+                            break
+                    
+                    if not latest_item:
+                        ver_suffix_short = f"{highest_version:.2f}.py"
+                        for item in items:
+                            if item['name'].endswith(ver_suffix_short):
+                                latest_item = item
+                                break
+                print("----------------------------------------\nUPDATING PY-DOS...\nDO NOT TURN OFF THIS COMPUTER OR PY-DOS DURING UPDATING\n----------------------------------------")
+                print("Downloading the Python file...")
+                installupdate = True
+                try:
+                    with open(latest_item['name']) as file:
+                        con = file.read
+                        if con != None or len(con) >= 1:
+                            installupdate = False
+                except:
+                    installupdate = True
+                    pass
+                if installupdate == True:
+                    try:
+                        if latest_item and 'download_url' in latest_item:
+                            file_url = latest_item['download_url']
+                            local_name = latest_item['name']
+                            
+                            import urllib.request
+                            urllib.request.urlretrieve(file_url, local_name)
+                            print(f"Success! Saved as {local_name}")
+                            subprocess.Popen([sys.executable, f"{local_name}"])
+                            raise SystemExit
+                        else:
+                            print("Could not find the download URL for the latest version.")
+                    except Exception as e:
+                        print(f"Could not download file. Error: {e}")
+                else:
+                    print("This file already exists! To prevent overwriting, the update installation has been aborted.")
             elif com == 'autosavetopydrive':
                 def autosaveto_pydrive(fn):
                     global savepydrive
@@ -160,19 +247,27 @@ try:
                         fn()
                 my_thread = threading.Thread(target=autosaveto_pydrive)
                 my_thread.start(s1)
-            #THE END OF THE IF AND ELIFS!
             elif com == 'tts':
                 import pyttsx3
                 print("DOING TTS!!! ROAR!")
                 try:
                     engine = pyttsx3.init()
-
-                    # 2. Queue the text you want to speak
                     engine.say(s1)
                     engine.runAndWait()
                 except Exception as e:
                     print(e)
                 print("donw!")
+            elif com == "exe":
+                import time
+                import random
+                import os
+                import subprocess
+                import sys
+                try:
+                    exec(s1)
+                except Exception as e:
+                    print(e)
+            #THE END OF THE IF AND ELIFS!
             else:
                 print("no commmand found.")
         except Exception as e:
