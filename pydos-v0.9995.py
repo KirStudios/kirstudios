@@ -140,7 +140,10 @@ try:
             try:
                 with open("pydos_paths.txt", "r") as file:
                     content = file.read()
-                    pathsofapps = content
+                    if "pathsofapps" not in content[:11]:
+                        pathsofapps = content
+                    else:
+                        exec(f"global pathsofapps; {content}")
             except Exception as e:
                 makelog(f"There has been an issue while trying to set up your path of apps. Type 'loadpaths' in Command Hub to see if it works there. {e}", 0)
         def pathappmgr():
@@ -196,7 +199,7 @@ try:
                     stay = False
 
             with open("pydos_paths.txt", "w") as file:
-                file.write(str(pathsofapps))
+                file.write(f"pathsofapps = {str(pathsofapps)}")
         def drivemgr():
             global ramdrive, ramdrive_allocate, current_drive, drives_mapping, drives_allocate, output, addstr, itworks, blocked_keywords, blocked_characters, remcha
             while True:
