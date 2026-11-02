@@ -1,3 +1,19 @@
+#this is for testing, please remove this block once released ->
+debug = False
+if debug:
+    print2 = print
+    input2 = input
+    def input(msg):
+        import time
+        return input2(f"{msg} {time.time()}")
+    def print(msg=None):
+        if msg == None:
+            msg = ''
+        import time
+        print2(msg, time.time())
+#<-
+if debug:
+    print("PY-DOS Extend is running. No thread is active yet so PY-DOS Extend has main thread-executon control.")
 try:
     dev = "Kir Studios"
     mainapp = "PY-DOS"
@@ -5,9 +21,59 @@ try:
     if __name__ == "__main__":
         input("Hi! Welcome to PY-DOS Extend! So glad you have installed this PY-DOS Application, but this PY-DOS Application requires you to run it in PY-DOS. Press ENTER to exit.")
         raise SystemExit
-    global modules_made, pydos_extend_logs, savepydrive
+    global modules_made, pydos_extend_logs, savepydrive, version
     modules_made = False
     import threading
+    global uptime
+    global keepcounting
+    keepcounting = True
+    if debug:
+        print("Defining uptime counter thread...")
+    def countuptime():
+        import time
+        global uptime
+        global keepcounting
+        uptime = 0
+        while True:
+            time.sleep(1)
+            uptime = uptime + 1
+    if debug:
+        print("Running uptime counter...")
+    uptimecounter = threading.Thread(target=countuptime)
+    uptimecounter.daemon = True
+    uptimecounter.start()
+    if debug:
+        print("Defining background task thread...")
+    def turnonmaid(v0=None, v1=None, v2=None, v3=None, v4=None, v5=None, v6=None, v7=None, v8=None, v9=None, v10=None):
+        import threading
+        def nouserneededbackgroundtaskmanager(v2):
+            import time
+            import random
+            global version
+            global compose
+            while True:
+                #50, 200
+                time.sleep(random.uniform(5, 20))
+                #ACTION 1: CHECK FOR UPDATES
+                if v2 > 0:
+                    result = do(com='silentupdate', s1=v0)
+                    v1('Background Update Check Status Complete!', result[0], 'PY-DOS Extend')
+                else:
+                    v1('Unable to scan for updates.', 'PY-DOS cannot scan for updates because PY-DOS ran out of network tokens. You can set more by increasing "network_tokens" value to 1 or higher.', 'PY-DOS Extend')
+                v2 -= 1 # Fixed from =- to -=
+                #ACTION 2: LET USER KNOW UPTIME
+                if random.randint(0, 3) == 2:
+                    v1('Uptime Info', f'The Current Uptime For This PY-DOS Session Is {do(com='getpydosuptime')} Seconds.', 'PY-DOS Extend')
+                #9, 20
+                time.sleep(random.uniform(0, 2))
+        global maidthread
+        # Added parenthesis and a trailing comma to force a tuple format
+        maidthread = threading.Thread(target=nouserneededbackgroundtaskmanager, args=(v2,))
+        maidthread.daemon = True
+        maidthread.start()
+    if debug:
+        print("Defining other functions for PY-DOS Extend...")
+
     pydos_extend_logs = []
     #WHAT PY-DOS CALLS TO DO
     def do(com=None, s1=None, s2=None, s3=None, s4=None, s5=None):
@@ -27,7 +93,10 @@ try:
                     best_match = None
 
                 output = f"Perhaps you meant to type '{best_match}'?"
-                return output, best_match
+                if 'backuppydrive' in s2 or s3 >= 0.9997:
+                    return output, best_match
+                else:
+                    return output
 
             #CONTACTS GITHUB SERVERS TO FIND A NEW PY-DOS VERSION
             elif com == 'update':
@@ -70,6 +139,42 @@ try:
                         print("No valid version files found on server.")
                 else:
                     print(f"Failed to fetch repository contents: {response.status_code}")
+            #SILENT UPDATE
+            elif com == 'silentupdate':
+                import requests
+                repo_owner = "KirStudios"
+                repo_name = "kirstudios"
+                api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents"
+                response = requests.get(api_url)
+                if response.status_code == 200:
+                    items = response.json()                    
+                    pydos_vers = []
+                    for item in items:
+                        filename = item['name']
+                        if filename.startswith("pydos-v") and filename.endswith(".py"):
+                            ver_str = filename.replace("pydos-v", "").replace(".py", "")
+                            try:
+                                pydos_vers.append(float(ver_str))
+                            except ValueError:
+                                pass
+                    
+                    version = float(s1)
+                    
+                    if pydos_vers:
+                        if version >= max(pydos_vers):
+                            if version > max(pydos_vers):
+                                return "Your PY-DOS version is a build not uploaded or deleted from GitHub! Take good care of it! Your PY-DOS version is up to date!", 0
+                            return "Your PY-DOS version is up to date! :D", 1
+                        else:
+                            return "[!] Your PY-DOS version is not up to date [!]", 2
+                    else:
+                        return "No valid version files found on server for update checking", 3
+                else:
+                    return f"Failed to fetch repository contents for update checking: {response.status_code}", 4
+
+
+
+
             #INSTALLS THE UPDATE!
             elif com == 'installupdate':
                 print("Checking for newer versions...")
@@ -245,8 +350,9 @@ try:
                     while True:
                         time.sleep(15)
                         fn()
-                my_thread = threading.Thread(target=autosaveto_pydrive)
-                my_thread.start(s1)
+                autosave = threading.Thread(target=autosaveto_pydrive)
+                autosave.daemon = True
+                autosave.start(s1)
             elif com == 'tts':
                 import pyttsx3
                 print("DOING TTS!!! ROAR!")
@@ -267,12 +373,17 @@ try:
                     exec(s1)
                 except Exception as e:
                     print(e)
+            elif com == 'getpydosuptime':
+                return uptime
+            elif com == 'shutdown':
+                import time
+                global keepcounting
+                raise SystemExit
             #THE END OF THE IF AND ELIFS!
             else:
                 print("no commmand found.")
         except Exception as e:
-            create_log(f"An error has happened while PY-DOS tried to call do(). {e}")
-             
+            create_log(f"An error has happened while PY-DOS tried to call do(). {e}")             
     def create_log(log):
         global pydos_extend_logs
         try:
@@ -354,9 +465,11 @@ try:
             tell_extend_file_true()
         except:
             return
-
     try:
+        if debug:
+            print("Reading PY-DOS Extend config file...")
         read_extend_file()
+        modules_made = True
     except Exception as e:
         create_log(f"An error has happened while trying to read config file. {e}")
         try:
@@ -366,6 +479,17 @@ try:
             print(f"Unable to create PY-DOS Extend Configuration File. {e}")
     if modules_made == False:
         install_modules()
+    else:
+        try:
+            import thefuzz
+            import certifi
+            import urllib3
+            import requests
+            import cffi
+            from bs4 import BeautifulSoup
+            import pyttsx3
+        except ModuleNotFoundError:
+            install_modules()
 
 except Exception as err:
     print(f"A problem with PY-DOS Extend happened. Error: {err}")
