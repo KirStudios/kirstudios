@@ -19,6 +19,8 @@ try:
         global pydos_extend, best_match, pydosextend
         best_match = "help"
         pydos_extend = False
+        global unknown_cmd_errors
+        unknown_cmd_errors = 0
         global version
         version = 0.9997
         smart_path = True
@@ -33,6 +35,17 @@ try:
                 if timesent == None:
                     timesent = "No Data Available When What Time Recived"
             global inbox
+            if title in list(inbox.keys()):
+                mail_number = 1
+                test_title = title
+                while True:
+                    test_title = f"{title} ({mail_number})"
+                    if test_title in list(inbox.keys()):
+                        mail_number += 1
+                        continue
+                    else:
+                        break
+                title = test_title
             inbox[title] = [message, sender, timesent]
         global checkinbox
         def checkinbox():
@@ -71,6 +84,7 @@ try:
                         del inbox[selectedmailname]
             for mail in inbox:
                 print(f"---------------------------\nTITLE:\n{mail}\nMESSAGE:\n{inbox[mail][0]}\nFROM:\n{inbox[mail][1]}\nRECIVED AT:\n{inbox[mail][2]}\n---------------------------")
+        #the end of checkinbox()
         #NETWORK LIMITS FOR PY-DOS (use autorun to do override default)
         global network_tokens
         network_tokens = 1
@@ -182,13 +196,16 @@ try:
         }
         current_drive = ramdrive
         def transform_relative_path_to_absolute_path(filename):
-            pydos_dir = __file__.rsplit('\\', 1)[0] if '\\' in __file__ else __file__.rsplit('/', 1)[0]
-            if '\\' in pydos_dir:
-                what_to_add_to_return = "\\" + filename
-            else:
-                what_to_add_to_return = "/" + filename
+            try:
+                pydos_dir = __file__.rsplit('\\', 1)[0] if '\\' in __file__ else __file__.rsplit('/', 1)[0]
+                if '\\' in pydos_dir:
+                    what_to_add_to_return = "\\" + filename
+                else:
+                    what_to_add_to_return = "/" + filename
 
-            pydos_dir = pydos_dir + what_to_add_to_return
+                pydos_dir = pydos_dir + what_to_add_to_return
+            except Exception:
+                pydos_dir = filename
             return pydos_dir
         def reset():
             global setup, no_config_file, smart_path
@@ -691,11 +708,21 @@ try:
                     if len(str(dict_to_check)) > max_size:
                         print("memory overflow detected.")
         def safely_run_python_code(code, output_type=0):
-            unsafe_parts = ['os.', 'subprocess.', 'sys.', 'exec(', 'globals', 'locals']
-            for part in unsafe_parts:
-                if part in code:
-                    print(f"EXTRA PROTECT: Detected insecure code!")
-                    return
+            unsafe_parts = ['os.', 'subprocess.', 'sys.', 'eval(', 'exec(', 'globals', 'locals', 'base', 'base64', 'bi', 'binary']
+            alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+            check_code = code
+            while True:
+                check_code = check_code.lower()
+                for scan in range(2):
+                    for part in unsafe_parts:
+                        if part in check_code:
+                            print(f"EXTRA PROTECT: Detected dangerous code!")
+                            return
+                    for char in check_code:
+                        if char not in alphabet:
+                            check_code = check_code.replace(str(char), '')
+                    
+                break
             if pydos_extend:
                 scope = ""
                 letters = ['d', 'i', 'c', 't', '_', 's', 'c', 'o', 'p', 'e']
@@ -924,8 +951,10 @@ try:
                 makelog(f"There was an issue while trying to edit or create the PyDrive. {err}", 1)
         def com_hub(command=None):
             checkramdrive()
-            global no_config_file, username, temp_username, best_match, version, network_tokens
-            commands = ['help', 'shutdown', 'username', 'editname', 'pyfile', 'executefile', 'safeexecutefile', 'execute', 'safeexecute', 'say', 'reset', 'ver', 'recenv', 'imports', 'loadimports', 'listimports', 'autorun', 'exestoredpy', 'drivemgr', 'createfile', 'editfile', 'viewfile', 'deletefile', 'renamefile', 'viewramdrive', 'syncpydrive', 'currentdrive', 'backuppydrive', 'readpydrivebackup', 'calc', 'clear', 'exitcom', 'infocenter', 'pathappmgr', 'loadpaths']
+            global no_config_file, username, temp_username, best_match, version, network_tokens, unknown_cmd_errors
+            temp_cmd_errors = unknown_cmd_errors
+            unknown_cmd_errors = 0
+            commands = ['help', 'shutdown', 'username', 'editname', 'pyfile', 'executefile', 'safeexecutefile', 'execute', 'safeexecute', 'say', 'reset', 'ver', 'recenv', 'imports', 'loadimports', 'listimports', 'autorun', 'exestoredpy', 'drivemgr', 'createfile', 'editfile', 'viewfile', 'deletefile', 'renamefile', 'viewramdrive', 'syncpydrive', 'currentdrive', 'backuppydrive', 'readpydrivebackup', 'calc', 'clear', 'exitcom', 'infocenter', 'pathappmgr', 'loadpaths', 'inbox']
             if command == None:
                 command = input("Type Command: ")
             if command == 'y':
@@ -966,6 +995,8 @@ try:
             elif command == 'pyfile':
                 file = input("What file in your computer should PY-DOS execute?: ")
                 exepyfile(file)
+            elif command == 'inbox':
+                checkinbox()
             elif command == 'executefile':
                 exe_filename = input("Type in the filename of the file you want to execute: ")
                 try:
@@ -1247,7 +1278,9 @@ try:
                     except Exception as e:
                         print(e)
                         return
+                unknown_cmd_errors = temp_cmd_errors
                 print(f"Unknown command, file, or drive.")
+                unknown_cmd_errors += 1
                 try:
                     if command.replace(" ", "") != "":
                         if pydos_extend:
@@ -1267,6 +1300,11 @@ try:
                                     print(output)
                 except Exception as err:
                     makelog(f"A problem has happened with PY-DOS Extend. {err}", 0)
+                if unknown_cmd_errors == 21:
+                    input("It seems like you don't know PY-DOS commands. You can type 'help' for a list of PY-DOS commands, or you can type 'infocenter' for information about features. Press ENTER to continue.")
+                if unknown_cmd_errors == 36:
+                    com_hub('help')
+                    unknown_cmd_errors = 0
         def shutdown(reason=None):
             print("Shutting Down...")
             global shutdown_reason
