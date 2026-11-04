@@ -53,7 +53,7 @@ try:
             global compose
             while True:
                 #50, 200
-                time.sleep(random.uniform(5, 20))
+                time.sleep(random.uniform(50, 200))
                 #ACTION 1: CHECK FOR UPDATES
                 if v2 > 0:
                     result = do(com='silentupdate', s1=v0)
@@ -65,7 +65,7 @@ try:
                 if random.randint(0, 3) == 2:
                     v1('Uptime Info', f'The Current Uptime For This PY-DOS Session Is {do(com='getpydosuptime')} Seconds.', 'PY-DOS Extend')
                 #9, 20
-                time.sleep(random.uniform(0, 2))
+                time.sleep(random.uniform(9, 20))
         global maidthread
         # Added parenthesis and a trailing comma to force a tuple format
         maidthread = threading.Thread(target=nouserneededbackgroundtaskmanager, args=(v2,))
