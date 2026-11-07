@@ -46,7 +46,7 @@ try:
                     else:
                         break
                 title = test_title
-            inbox[title] = [message, sender, timesent]
+            inbox[title] = [message, sender, timesent, 'unviewed']
         global checkinbox
         def checkinbox():
             global inbox
@@ -55,9 +55,22 @@ try:
             systemmails = []
             while True:
                 systemmails = []
-                for mail in inbox:
-                    systemmails.append(f"[FROM: {inbox[mail][1]} RECVIED: {inbox[mail][2].strftime("%H:%M")}]\n   TITLE: {mail}\n")
-                print(f"System Mails: {len(systemmails)}")
+                unviewed_mails = 0
+                viewed_mails = 0
+                #temp_inbox is here to avoid a crash if the core inbox changes during for loop (which if that happens it would've crashed if for was pointing to the main variable)
+                temp_inbox = inbox
+                for mail in temp_inbox:
+                    #add 3 spaces in between so RECIVED and TITLE won't be intended futher to the left then FROM will be.
+                    systemmails.append(f"[FROM: {inbox[mail][1]}\n   RECVIED: {inbox[mail][2].strftime("%H:%M")}\n   TITLE: {mail}\n   STATUS: {"Unviewed" if inbox[mail][3] == 'unviewed' else "Viewed"}]\n")
+                    if inbox[mail][3] == 'unviewed':
+                        unviewed_mails += 1
+                    else:
+                        viewed_mails += 1
+                print(f"System Mails: {len(systemmails)} (Viewed: {viewed_mails} | Unviewed: {unviewed_mails})")
+                if unviewed_mails == 0 and len(systemmails) != 0:
+                    print("You have viewed all of your system mail. You have catched up.")
+                if viewed_mails == 0 and len(systemmails) != 0:
+                    print("Welcome to your inbox! You haven't viewed any of your system mails yet! That can change.")
                 if len(systemmails) == 0:
                     if pydos_extend:
                         msgs = ['It seems like your inbox is empty.', 'There is no System Mail, you can relax now.', 'An Empty Inbox Means Less Work!', 'An Empty Inbox Means More Computer Memory For PY-DOS And Others!', 'This moment is your lucky moment, no system mail to worry about!']
@@ -67,8 +80,16 @@ try:
                         print("It seems like your inbox is empty.")
                     break
                 ui = intmenu(systemmails, 1)
-                selectedmailid = input(f"Choose an system mail to select by typing the number beside the system mail.\n{ui}\nType Here: ")
-                selectedmailname = list(inbox.keys())[int(selectedmailid) - 1]
+                while True:
+                    selectedmailid = input(f"Choose an system mail to select by typing the number beside the system mail.\nYou can also type 'exit' to leave.\n{ui}\nType Here: ")
+                    if selectedmailid == 'exit':
+                        print("Exiting your System Mail Inbox...")
+                        return
+                    try:
+                        selectedmailname = list(inbox.keys())[int(selectedmailid) - 1]
+                        break
+                    except Exception as e:
+                        makelog(f"There was an error. Please try again. {e}", 1)
                 print(f"What do you want to do with '{selectedmailname}'?")
                 user_selects = intmenu(['View Mail', 'Delete', 'Mark As Viewed', 'Mark As Unviewed'], 0)
                 user_selects = int(user_selects)
@@ -76,12 +97,17 @@ try:
                 if user_selects == 1:
                     print(selectedmailname)
                     print(inbox[selectedmailname])
+                    inbox[selectedmailname][3] = 'viewed'
                     print(f"---------------------------\nTITLE:\n{selectedmailname}\nMESSAGE:\n{inbox[selectedmailname][0]}\nFROM:\n{inbox[selectedmailname][1]}\nRECIVED AT:\n{inbox[selectedmailname][2]}\n---------------------------")
                     input("Press ENTER when you are done reading system mail.")
                 elif user_selects == 2:
                     user_says = confirm("Are you sure you want to delete this system mail? Once deleted the contents of this system mail will be lost forever.")
                     if user_says == True:
                         del inbox[selectedmailname]
+                elif user_selects == 3:
+                    inbox[selectedmailname][3] = 'viewed'
+                elif user_selects == 4:
+                    inbox[selectedmailname][3] = 'unviewed'
             for mail in inbox:
                 print(f"---------------------------\nTITLE:\n{mail}\nMESSAGE:\n{inbox[mail][0]}\nFROM:\n{inbox[mail][1]}\nRECIVED AT:\n{inbox[mail][2]}\n---------------------------")
         #the end of checkinbox()
@@ -459,6 +485,20 @@ try:
             #writes
             with open(path, "w") as file:
                 file.write(content)
+        def appendfile(path, content):
+            #writes
+            with open(path, "a") as file:
+                file.write(content)
+        def throttle_pydos():
+            global print
+            print("Throttling PY-DOS is serious!")
+            print3 = print
+            def print(msg=None):
+                if msg == None:
+                    msg = ''
+                import time
+                print3(msg)
+                time.sleep(1)
         def calc(op=None, n1=None, n2=None):
             try:
                 n1 = float(n1)
@@ -478,6 +518,7 @@ try:
             return res
         #log maker
         def makelog(log=None, type=0):
+            '''2 MEANS PRINT LOG ONLY, 1 MEANS PRINT LOG AND ADD LOG, WHILE 0 (or nothing) MEANS SLIENTLY ADD LOG'''
             if log == None:
                 return
             if type == 2:
@@ -708,7 +749,7 @@ try:
                     if len(str(dict_to_check)) > max_size:
                         print("memory overflow detected.")
         def safely_run_python_code(code, output_type=0):
-            unsafe_parts = ['os.', 'subprocess.', 'sys.', 'eval(', 'exec(', 'globals', 'locals', 'base', 'base64', 'bi', 'binary']
+            unsafe_parts = ['os.', 'subprocess.', 'sys.', 'eval(', 'exec(', 'os', 'subprocess', 'sys', 'eval', 'exec', 'globals', 'locals', 'base', 'base64', 'bi', 'binary']
             alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
             check_code = code
             while True:
@@ -970,6 +1011,8 @@ try:
                     print("Shutdown aborted.")
             elif command == 'username':
                 print(username)
+            elif command == f'{username}':
+                print("That is you!")
             elif command == 'editname':
                 temp_username = input("Type in your new username: ")
                 user_says = confirm(f"Are you sure you want to change your username from '{username}' to '{temp_username}'?")
